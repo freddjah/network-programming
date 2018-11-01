@@ -1,0 +1,28 @@
+• Your solution must have an acceptable layered architecture and be well designed.
+This means it must follow the guidelines of the lecture on architecture, and of the
+programming examples on the course web. Your are, however, not required to use
+exactly the same layers as in those examples.
+
+• Client and server must communicate by sending messages over a TCP connection,
+using blocking TCP sockets.
+
+• The client shall only provide a user interface. It must not store any state, e.g.,
+number of letters in the word, correctly guessed letters, number of remaining attempts,
+total score, etc. All data entered by the user must be sent to the server for
+processing, and all data displayed to the user must be received from the server.
+
+• The server is only allowed to send state, e.g., number of letters in the word, correctly
+guessed letters, number of remaining attempts, total score, etc. The server is not
+allowed to send any part of the view, like for example a string saying “You have 2
+attempts left”, instead the server must only send the number of remaining attempts,
+and the client shall insert it in the user interface.
+
+• The client must have a responsive user interface, which means it must be multithreaded.
+The user must be able to give commands, for example to quit the
+program, even if the client is waiting for a message from the server.
+
+• The server must be able to handle multiple clients playing concurrently, which
+means it must be multithreaded.
+
+• The user interface must be informative. The current state of the program must be
+clear to the user, and the user must understand what to do next.
