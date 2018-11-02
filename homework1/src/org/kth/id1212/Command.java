@@ -39,23 +39,32 @@ public class Command {
     return out;
   }
 
-  public static Command createFromString(String command) {
+  public static Command createFromString(String command) throws Exception {
 
-    String type = "";
-    HashMap<String,String> arguments = new HashMap();
+    try {
 
-    String[] commands = command.split(";");
-    for (String cmd : commands) {
-      
-      String[] cmdSplit = cmd.split("=");
+      String type = null;
+      HashMap<String,String> arguments = new HashMap();
 
-      if (cmdSplit[0].equals("type")) {
-        type = cmdSplit[1];
-      } else {
-        arguments.put(cmdSplit[0], cmdSplit[1]);
+      String[] commands = command.split(";");
+      for (String cmd : commands) {
+        
+        String[] cmdSplit = cmd.split("=");
+
+        if (cmdSplit[0].equals("type")) {
+          type = cmdSplit[1];
+        } else {
+          arguments.put(cmdSplit[0], cmdSplit[1]);
+        }
       }
-    }
 
-    return new Command(type, arguments);
+      if (type == null) {
+        throw new Exception("Invalid command: Must include type");
+      }
+
+      return new Command(type, arguments);
+    } catch (Exception e) {
+      throw new InvalidCommandException("Invalid command");
+    }
   }
 }

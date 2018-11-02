@@ -15,17 +15,8 @@ public class Server {
     while (true) {
 
       Socket clientSocket = serverSocket.accept();
-      BufferedReader clientReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-      DataOutputStream clientWriter = new DataOutputStream(clientSocket.getOutputStream());
-
-      String command = clientReader.readLine();
-      System.out.println("Received command from client: " + command);
-
-      // type=guess;
-
-      clientWriter.writeBytes("I hear you: " + command.toUpperCase() + "\n");
+      SessionHandler handler = new SessionHandler(clientSocket);
+      handler.start();
     }
-
-    
   }
 }
