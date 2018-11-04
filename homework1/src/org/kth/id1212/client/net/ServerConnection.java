@@ -1,6 +1,7 @@
-package org.kth.id1212.client;
+package org.kth.id1212.client.net;
 
-import org.kth.id1212.InvalidCommandException;
+import org.kth.id1212.common.InvalidCommandException;
+import org.kth.id1212.client.controller.ClientController;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -10,7 +11,7 @@ import java.net.Socket;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class ServerConnection extends Thread {
-    private Client controller;
+    private ClientController controller;
 
     private Socket connection;
     private DataOutputStream requestDataStream;
@@ -18,7 +19,7 @@ public class ServerConnection extends Thread {
 
     private LinkedBlockingQueue<String> outgoingRequests = new LinkedBlockingQueue<>();
 
-    public ServerConnection(Client controller, String serverUrl, int serverPort) throws IOException {
+    public ServerConnection(ClientController controller, String serverUrl, int serverPort) throws IOException {
         this.controller = controller;
         this.connection = new Socket(serverUrl, serverPort);
         this.requestDataStream = new DataOutputStream(this.connection.getOutputStream());
@@ -36,23 +37,17 @@ public class ServerConnection extends Thread {
         int contentLength;
 
         try {
-            String read = this.read(6);
-            System.out.println("What should be integers is " + read);
-            contentLength = Integer.parseInt(read);
-            System.out.println("Content length is: " + contentLength);
+            contentLength = Integer.parseInt(this.read(6));
         } catch (NumberFormatException e) {
             throw new InvalidCommandException("Could not parse command.");
         }
 
-        String content = this.read(contentLength);
-        System.out.println("Received content:" + content);
-        return content;
+        return this.read(contentLength);
     }
 
     public synchronized void addOutgoingRequest(String message) throws InterruptedException {
         String responseLength = String.format("%06d", message.length());
         this.outgoingRequests.add(responseLength + message);
-        System.out.println("Outgoing request added: " + this.outgoingRequests.peek());
         notify();
     }
 

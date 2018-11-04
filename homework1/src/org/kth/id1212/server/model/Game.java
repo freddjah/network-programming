@@ -1,4 +1,4 @@
-package org.kth.id1212;
+package org.kth.id1212.server.model;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,7 +12,9 @@ public class Game {
   boolean hasEnded = false;
   boolean won = false;
 
-  Game(String word) {
+  public Game(String word) {
+
+    System.out.println("Chosen word: " + word);
 
     this.word = word;
     this.remainingAttempts = word.length();

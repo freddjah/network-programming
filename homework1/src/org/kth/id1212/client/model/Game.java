@@ -1,4 +1,4 @@
-package org.kth.id1212.client;
+package org.kth.id1212.client.model;
 
 public class Game {
     private int remainingAttempts = 0;

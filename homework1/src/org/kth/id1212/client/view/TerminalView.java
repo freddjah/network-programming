@@ -1,18 +1,20 @@
-package org.kth.id1212.client;
+package org.kth.id1212.client.view;
+
+import org.kth.id1212.client.net.GameHandler;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class UserInputHandler extends Thread {
+public class TerminalView extends Thread {
     private GameHandler gameHandler;
     private BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
 
-    UserInputHandler(GameHandler gameHandler) {
+    public TerminalView(GameHandler gameHandler) {
         this.gameHandler = gameHandler;
     }
 
-    void showHelp() {
+    public void showHelp() {
         if (gameHandler.getRemainingAttempts() > 0) {
             System.out.println("Type 1 and press <ENTER> to guess a character.");
             System.out.println("Type 2 and press <ENTER> to guess a word.");
@@ -21,21 +23,20 @@ public class UserInputHandler extends Thread {
         }
     }
 
-    void guessCharacter() throws IOException, InterruptedException {
+    public void guessCharacter() throws IOException, InterruptedException {
         System.out.println("Type a character and press <ENTER>.");
         String guess = inputReader.readLine().split("")[0];
         gameHandler.guessCharacter(guess);
     }
 
-    void guessWord() throws IOException, InterruptedException {
+    public void guessWord() throws IOException, InterruptedException {
         System.out.println("Type a word and press <ENTER>.");
         String guess = inputReader.readLine().trim().split(" ")[0];
         gameHandler.guessWord(guess);
     }
 
-    void handleInput() throws IOException, InterruptedException {
+    public void handleInput() throws IOException, InterruptedException {
         if (gameHandler.getRemainingAttempts() == 0) {
-            System.out.println("no attempts left");
             String cmd = inputReader.readLine();
             gameHandler.startGame();
 
@@ -51,6 +52,11 @@ public class UserInputHandler extends Thread {
                             break;
             }
         }
+    }
+
+    public static void showCurrentScore(String currentWord, int currentScore, int remainingAttempts) {
+        String formattedCurrentWord = currentWord.replace("", " ").trim();
+        System.out.println(formattedCurrentWord + " || Current Score: " + currentScore + " || Remaining attempts: " + remainingAttempts);
     }
 
     @Override

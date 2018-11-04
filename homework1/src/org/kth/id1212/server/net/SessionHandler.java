@@ -1,7 +1,11 @@
-package org.kth.id1212;
+package org.kth.id1212.server.net;
 
 import java.io.*;
 import java.net.*;
+import org.kth.id1212.server.controller.GameController;
+import org.kth.id1212.server.model.Game;
+import org.kth.id1212.common.Command;
+import org.kth.id1212.common.InvalidCommandException;
 
 public class SessionHandler extends Thread {
 
@@ -10,7 +14,7 @@ public class SessionHandler extends Thread {
   DataOutputStream clientWriter;
   GameController gameController;
 
-  SessionHandler(Socket client) throws IOException {
+  public SessionHandler(Socket client) throws IOException {
 
     this.client = client;
     this.clientReader = new BufferedReader(new InputStreamReader(client.getInputStream()));
@@ -54,7 +58,7 @@ public class SessionHandler extends Thread {
           this.gameController.guessWord(command.get("word"));
         }
 
-        String responseState = this.gameController.getState().toString() + "\n";
+        String responseState = this.gameController.getState().toString();
         String responseLength = String.format("%06d", responseState.length());
         this.clientWriter.writeBytes(responseLength + responseState);
 
@@ -80,7 +84,7 @@ public class SessionHandler extends Thread {
     command.set("message", invalidCommandException.getMessage());
 
     try {
-      this.clientWriter.writeBytes(command.toString() + "\n");
+      this.clientWriter.writeBytes(command.toString());
     } catch (Exception e) {
       e.printStackTrace();
     }

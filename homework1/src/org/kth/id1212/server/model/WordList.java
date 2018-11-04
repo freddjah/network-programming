@@ -1,4 +1,4 @@
-package org.kth.id1212;
+package org.kth.id1212.server.model;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -10,7 +10,7 @@ public class WordList {
 
   String filePath;
 
-  WordList(String filePath) {
+  public WordList(String filePath) {
     this.filePath = filePath;
   }
 

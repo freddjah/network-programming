@@ -13,6 +13,13 @@
   * Handle multiple clients
 * Blocking TCP communication (???)
 
+# Buggar/fixar
+
+* Server: "Broken pipe" loop när man disconnectar klienten.
+* Server: Lägga in sychronized?
+* Klienten: Hantera att servern är nere.
+* Klienten: Hantera att servern går ner.
+
 # API
 
 ## From client

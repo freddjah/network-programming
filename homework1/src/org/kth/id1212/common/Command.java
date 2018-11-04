@@ -1,4 +1,4 @@
-package org.kth.id1212;
+package org.kth.id1212.common;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -8,17 +8,17 @@ public class Command {
 
   private HashMap<String, String> map = new HashMap<String, String>();
 
-  Command(String type) {
+  public Command(String type) {
     map.put("type", type);
   }
 
-  Command(String type, HashMap<String, String> arguments) {
+  public Command(String type, HashMap<String, String> arguments) {
 
     this.map = arguments;
     this.map.put("type", type);
   }
 
-  void set(String key, String value) {
+  public void set(String key, String value) {
     this.map.put(key, value);
   }
 

@@ -1,57 +1,60 @@
-package org.kth.id1212.client;
+package org.kth.id1212.client.net;
 
-import org.kth.id1212.Command;
+import org.kth.id1212.common.Command;
+import org.kth.id1212.client.controller.ClientController;
+import org.kth.id1212.client.model.Game;
+import org.kth.id1212.client.view.TerminalView;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class GameHandler extends Thread {
-    private Client controller;
+    private ClientController controller;
     private LinkedBlockingQueue<String> serverResponses = new LinkedBlockingQueue<>();
     private Game game = new Game();
 
-    GameHandler(Client controller) {
+    public GameHandler(ClientController controller) {
         this.controller = controller;
-        UserInputHandler terminal = new UserInputHandler(this);
+        TerminalView terminal = new TerminalView(this);
         terminal.start();
     }
 
-    synchronized void addServerResponse(String message) {
+    public synchronized void addServerResponse(String message) {
         this.serverResponses.add(message);
         notify();
     }
 
-    synchronized String handleServerResponse() throws InterruptedException {
+    public synchronized String handleServerResponse() throws InterruptedException {
         while(this.serverResponses.isEmpty()) wait();
 
         return this.serverResponses.poll();
     }
 
-    void startGame() throws InterruptedException {
+    public void startGame() throws InterruptedException {
         Command command = new Command("start_game");
         controller.addRequest(command.toString());
     }
 
-    void guessCharacter(String guess) throws InterruptedException {
+    public void guessCharacter(String guess) throws InterruptedException {
         Command command = new Command("guess_char");
         command.set("char", guess);
         controller.addRequest(command.toString());
     }
 
-    void guessWord(String guess) throws InterruptedException {
+    public void guessWord(String guess) throws InterruptedException {
         Command command = new Command("guess_word");
         command.set("word", guess);
         controller.addRequest(command.toString());
     }
 
-    String getCurrentWord() {
+    public String getCurrentWord() {
         return game.getCurrentWord();
     }
 
-    int getCurrentScore() {
+    public int getCurrentScore() {
         return game.getCurrentScore();
     }
 
-    int getRemainingAttempts() {
+    public int getRemainingAttempts() {
         return game.getRemainingAttempts();
     }
 
@@ -60,7 +63,6 @@ public class GameHandler extends Thread {
         while (true) {
             try {
                 String response = handleServerResponse();
-                System.out.println(response);
                 Command command = Command.createFromString(response);
 
                 int currentScore = Integer.parseInt(command.get("score"));
@@ -71,7 +73,7 @@ public class GameHandler extends Thread {
                 this.game.setCurrentWord(currentWord);
                 this.game.setRemainingAttempts(remainingAttempts);
 
-                GameOutputHandler.showCurrentScore(currentWord, currentScore, remainingAttempts);
+                TerminalView.showCurrentScore(currentWord, currentScore, remainingAttempts);
 
                 if (!this.game.getCurrentWord().contains("_")) {
                     this.game.setRemainingAttempts(0);
