@@ -11,7 +11,7 @@ run-server:
 	java -cp src org.kth.id1212.Server
 
 build-client:
-	javac -sourcepath src src/org/kth/id1212/Client.java
+	javac -sourcepath src src/org/kth/id1212/client/Client.java
 
 run-client:
 	java -cp src org.kth.id1212.Client
