@@ -26,14 +26,24 @@ public class SessionHandler extends Thread {
 
       try {
 
-        String clientCommand = this.clientReader.readLine();
+        int contentLength;
+
+        try {
+          contentLength = Integer.parseInt(this.read(6));
+          System.out.println("Content length is: " + contentLength);
+        } catch (NumberFormatException e) {
+          throw new InvalidCommandException("Could not parse command.");
+        }
+
+        String clientCommand = this.read(contentLength);
+        System.out.println("Client command: " + clientCommand);
+
         if (clientCommand == null) {
           System.out.println("Client proably disconnected");
           break;
         }
 
         Command command = Command.createFromString(clientCommand);
-
         String type = command.get("type");
 
         if (type.equals("start_game")) {
@@ -44,7 +54,9 @@ public class SessionHandler extends Thread {
           this.gameController.guessWord(command.get("word"));
         }
 
-        this.clientWriter.writeBytes(this.gameController.getState().toString() + "\n");
+        String responseState = this.gameController.getState().toString() + "\n";
+        String responseLength = String.format("%06d", out.length());
+        this.clientWriter.writeBytes(responseLength + responseState);
 
       } catch (InvalidCommandException e) {
         this.handleInvalidCommand(e);
@@ -54,7 +66,15 @@ public class SessionHandler extends Thread {
     }
   }
 
-  void handleInvalidCommand(InvalidCommandException invalidCommandException) {
+  private String read(int bytes) throws IOException {
+
+    char[] cbuf = new char[bytes];
+    this.clientReader.read(cbuf, 0, bytes);
+
+    return String.copyValueOf(cbuf);
+  }
+
+  private void handleInvalidCommand(InvalidCommandException invalidCommandException) {
 
     Command command = new Command("error");
     command.set("message", invalidCommandException.getMessage());
