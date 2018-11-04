@@ -55,7 +55,7 @@ public class SessionHandler extends Thread {
         }
 
         String responseState = this.gameController.getState().toString() + "\n";
-        String responseLength = String.format("%06d", out.length());
+        String responseLength = String.format("%06d", responseState.length());
         this.clientWriter.writeBytes(responseLength + responseState);
 
       } catch (InvalidCommandException e) {
