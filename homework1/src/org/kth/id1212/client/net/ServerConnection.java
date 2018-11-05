@@ -39,6 +39,7 @@ public class ServerConnection extends Thread {
         try {
             contentLength = Integer.parseInt(this.read(6));
         } catch (NumberFormatException e) {
+            e.printStackTrace();
             throw new InvalidCommandException("Could not parse command.");
         }
 
@@ -51,12 +52,16 @@ public class ServerConnection extends Thread {
         notify();
     }
 
-    private String read(int bytes) throws IOException {
+    private String read(int bytesToRead) throws IOException {
 
-        char[] cbuf = new char[bytes];
-        this.responseDataReader.read(cbuf, 0, bytes);
+        StringBuilder sb = new StringBuilder();
 
-        return String.copyValueOf(cbuf);
+        while (bytesToRead > 0) {
+          sb.append((char) this.responseDataReader.read());
+          bytesToRead--;
+        }
+    
+        return sb.toString();
     }
 
     public void run() {
