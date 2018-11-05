@@ -27,14 +27,12 @@ public class TerminalView extends Thread {
         System.out.println("Type a character and press <ENTER>.");
         String guess = inputReader.readLine().split("")[0];
         gameHandler.guessCharacter(guess);
-        Thread.sleep(500);
     }
 
     public void guessWord() throws IOException, InterruptedException {
         System.out.println("Type a word and press <ENTER>.");
         String guess = inputReader.readLine().trim().split(" ")[0];
         gameHandler.guessWord(guess);
-        Thread.sleep(500);
     }
 
     public void startup() throws IOException, InterruptedException {
