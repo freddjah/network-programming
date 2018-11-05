@@ -10,12 +10,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class GameHandler extends Thread {
     private ClientController controller;
     private LinkedBlockingQueue<String> serverResponses = new LinkedBlockingQueue<>();
+    private TerminalView terminal;
     private Game game = new Game();
 
     public GameHandler(ClientController controller) {
         this.controller = controller;
-        TerminalView terminal = new TerminalView(this);
-        terminal.start();
+        this.terminal = new TerminalView(this);
+        this.terminal.start();
+        this.terminal.showHelp();
     }
 
     public synchronized void addServerResponse(String message) {
@@ -78,6 +80,8 @@ public class GameHandler extends Thread {
                 if (!this.game.getCurrentWord().contains("_")) {
                     this.game.setRemainingAttempts(0);
                 }
+
+                this.terminal.showHelp();
 
             } catch (InterruptedException e) {
                 e.printStackTrace();

@@ -27,43 +27,52 @@ public class TerminalView extends Thread {
         System.out.println("Type a character and press <ENTER>.");
         String guess = inputReader.readLine().split("")[0];
         gameHandler.guessCharacter(guess);
+        Thread.sleep(500);
     }
 
     public void guessWord() throws IOException, InterruptedException {
         System.out.println("Type a word and press <ENTER>.");
         String guess = inputReader.readLine().trim().split(" ")[0];
         gameHandler.guessWord(guess);
+        Thread.sleep(500);
     }
 
-    public void handleInput() throws IOException, InterruptedException {
+    public void startup() throws IOException, InterruptedException {
         if (gameHandler.getRemainingAttempts() == 0) {
             String cmd = inputReader.readLine();
             gameHandler.startGame();
 
-            Thread.sleep(500);
-        } else {
-            String cmd = inputReader.readLine().trim().split("")[0];
-            switch (cmd) {
-                case "1":   guessCharacter();
-                            break;
-                case "2":   guessWord();
-                            break;
-                default:    showHelp();
-                            break;
+            System.out.print("Loading game");
+
+            while (gameHandler.getRemainingAttempts() == 0) {
+                System.out.print(".");
+                Thread.sleep(5);
             }
+        }
+    }
+
+    public void handleInput() throws IOException, InterruptedException {
+        String cmd = inputReader.readLine().trim().split("")[0];
+        switch (cmd) {
+            case "1":   guessCharacter();
+                        break;
+            case "2":   guessWord();
+                        break;
+            default:    showHelp();
+                        break;
         }
     }
 
     public static void showCurrentScore(String currentWord, int currentScore, int remainingAttempts) {
         String formattedCurrentWord = currentWord.replace("", " ").trim();
-        System.out.println(formattedCurrentWord + " || Current Score: " + currentScore + " || Remaining attempts: " + remainingAttempts);
+        System.out.println("\n\n" + formattedCurrentWord + " || Current Score: " + currentScore + " || Remaining attempts: " + remainingAttempts + "\n");
     }
 
     @Override
     public void run() {
-        showHelp();
         while (true) {
             try {
+                startup();
                 handleInput();
             } catch (IOException e) {
                 e.printStackTrace();
