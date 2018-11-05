@@ -8,6 +8,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class ServerConnection extends Thread {
@@ -30,17 +31,24 @@ public class ServerConnection extends Thread {
         while (outgoingRequests.isEmpty()) wait();
 
         String message = outgoingRequests.take();
-        this.requestDataStream.writeBytes(message);
+
+        try {
+            this.requestDataStream.writeBytes(message);
+        } catch (SocketException e) {
+            controller.stopServices();
+        }
     }
 
     private String receiveIncomingResponse() throws IOException, InvalidCommandException {
-        int contentLength;
+        int contentLength = 0;
 
         try {
             contentLength = Integer.parseInt(this.read(6));
         } catch (NumberFormatException e) {
             e.printStackTrace();
             throw new InvalidCommandException("Could not parse command.");
+        } catch (SocketException e) {
+            controller.stopServices();
         }
 
         return this.read(contentLength);
@@ -66,6 +74,11 @@ public class ServerConnection extends Thread {
 
     public void run() {
         while(true) {
+            if (Thread.currentThread().isInterrupted()) {
+                System.out.println("\nError has occurred: Server Connection shutting down.");
+                System.exit(0);
+            }
+
             try {
                 this.sendOutgoingRequests();
                 String response = this.receiveIncomingResponse();

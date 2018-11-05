@@ -1,5 +1,8 @@
 package org.kth.id1212.client.startup;
 
+import java.io.IOException;
+import java.net.ConnectException;
+
 import org.kth.id1212.client.controller.ClientController;
 
 /**
@@ -11,8 +14,10 @@ public class Client {
 
     try {
       new ClientController("localhost", 3000);
-    } catch (Exception e) {
-      e.printStackTrace();
+    } catch (ConnectException e) {
+      System.out.println("Server is unavailable.");
+    } catch (IOException e) {
+      System.out.println("Something went wrong while connecting to the server.");
     }
   }
 }

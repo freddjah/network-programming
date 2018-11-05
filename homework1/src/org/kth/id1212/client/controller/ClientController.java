@@ -22,4 +22,9 @@ public class ClientController {
     public void addResponse(String message) {
         this.ui.addServerResponse(message);
     }
+
+    public void stopServices() {
+        this.ui.interrupt();
+        this.connection.interrupt();
+    }
 }

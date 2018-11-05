@@ -69,6 +69,10 @@ public class TerminalView extends Thread {
     @Override
     public void run() {
         while (true) {
+            if (Thread.currentThread().isInterrupted()) {
+                System.exit(0);
+            }
+
             try {
                 startup();
                 handleInput();

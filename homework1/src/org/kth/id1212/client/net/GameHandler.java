@@ -63,6 +63,11 @@ public class GameHandler extends Thread {
     @Override
     public void run() {
         while (true) {
+            if (Thread.currentThread().isInterrupted()) {
+                System.out.println("\nError has occurred: UI shutting down.");
+                System.exit(0);
+            }
+
             try {
                 String response = handleServerResponse();
                 Command command = Command.createFromString(response);
@@ -84,9 +89,9 @@ public class GameHandler extends Thread {
                 this.terminal.showHelp();
 
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                controller.stopServices();
             } catch (Exception e) {
-                e.printStackTrace();
+                controller.stopServices();
             }
         }
     }
