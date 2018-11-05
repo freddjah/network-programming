@@ -26,8 +26,11 @@ public class Command {
     return this.map.get(key);
   }
 
+  /*
+   * Generate string command to send over TCP
+   */
   public String toString() {
-    
+
     String out = "";
     Iterator it = this.map.entrySet().iterator();
     while (it.hasNext()) {
@@ -39,6 +42,9 @@ public class Command {
     return out;
   }
 
+  /*
+   * Create command from string
+   */
   public static Command createFromString(String command) throws Exception {
 
     try {
@@ -48,7 +54,7 @@ public class Command {
 
       String[] commands = command.split(";");
       for (String cmd : commands) {
-        
+
         String[] cmdSplit = cmd.split("=");
 
         if (cmdSplit[0].equals("type")) {

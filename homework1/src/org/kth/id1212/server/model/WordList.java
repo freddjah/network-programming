@@ -14,6 +14,9 @@ public class WordList {
     this.filePath = filePath;
   }
 
+  /*
+   * Get a random word from word file
+   */
   public String getRandomWord() throws IOException {
 
     ArrayList<String> words = this.readWordsFromFile();
@@ -21,6 +24,9 @@ public class WordList {
     return word.toLowerCase();
   }
 
+  /*
+   * Read all words from word file into an ArrayList
+   */
   private ArrayList<String> readWordsFromFile() throws IOException {
 
     ArrayList<String> words = new ArrayList<String>();
