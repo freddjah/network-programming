@@ -11,7 +11,6 @@ import org.kth.id1212.client.controller.ClientController;
 public class Client {
 
   public static void main(String args[]) {
-
     try {
       new ClientController("localhost", 3000);
     } catch (ConnectException e) {
