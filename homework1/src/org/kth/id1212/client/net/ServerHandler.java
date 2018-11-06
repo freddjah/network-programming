@@ -27,6 +27,7 @@ public class ServerHandler extends Thread {
 
   public void send(String message) throws IOException {
     String responseLength = String.format("%06d", message.length());
+    System.out.println("Sending: " + responseLength + message);
     this.requestDataStream.writeBytes(responseLength + message);
   }
 
