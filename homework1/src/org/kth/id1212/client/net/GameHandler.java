@@ -1,98 +1,89 @@
 package org.kth.id1212.client.net;
 
-import org.kth.id1212.common.Command;
-import org.kth.id1212.client.controller.ClientController;
-import org.kth.id1212.client.model.Game;
-import org.kth.id1212.client.view.TerminalView;
+import org.kth.id1212.client.controller.GameController;
+import org.kth.id1212.client.model.GameViewModel;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.io.IOException;
 
-import java.util.concurrent.LinkedBlockingQueue;
-
+/**
+ * GameHandler
+ */
 public class GameHandler extends Thread {
-    private ClientController controller;
-    private LinkedBlockingQueue<String> serverResponses = new LinkedBlockingQueue<>();
-    private TerminalView terminal;
-    private Game game = new Game();
 
-    public GameHandler(ClientController controller) {
-        this.controller = controller;
-        this.terminal = new TerminalView(this);
-        this.terminal.start();
-        this.terminal.showHelp();
+  protected GameController controller;
+  protected AtomicBoolean waitingForServerResponse = new AtomicBoolean(false);
+  protected AtomicBoolean gameInitiated = new AtomicBoolean(false);
+
+  public GameHandler(GameController controller) {
+    this.controller = controller;
+
+    new GameLoop(this).start();
+    this.start();
+  }
+
+  @Override
+  public void run() {
+    while(true) {
+      try {
+        GameViewModel game = controller.receiveServerResponse();
+        this.controller.printScore(game, this.gameInitiated.get());
+        this.gameInitiated.set(game.getGameStarted());
+        this.waitingForServerResponse.set(false);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      } catch (IOException e) {
+        e.printStackTrace();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
+}
 
-    public synchronized void addServerResponse(String message) {
-        this.serverResponses.add(message);
-        notify();
-    }
+  /**
+   * GameLoop
+   */
+  public class GameLoop extends Thread {
+    private GameHandler handler;
 
-    public synchronized String handleServerResponse() throws InterruptedException {
-        while(this.serverResponses.isEmpty()) wait();
-
-        return this.serverResponses.poll();
-    }
-
-    public void startGame() throws InterruptedException {
-        Command command = new Command("start_game");
-        controller.addRequest(command.toString());
-    }
-
-    public void guessCharacter(String guess) throws InterruptedException {
-        Command command = new Command("guess_char");
-        command.set("char", guess);
-        controller.addRequest(command.toString());
-    }
-
-    public void guessWord(String guess) throws InterruptedException {
-        Command command = new Command("guess_word");
-        command.set("word", guess);
-        controller.addRequest(command.toString());
-    }
-
-    public String getCurrentWord() {
-        return game.getCurrentWord();
-    }
-
-    public int getCurrentScore() {
-        return game.getCurrentScore();
-    }
-
-    public int getRemainingAttempts() {
-        return game.getRemainingAttempts();
+    GameLoop(GameHandler handler) {
+      this.handler = handler;
     }
 
     @Override
     public void run() {
-        while (true) {
-            if (Thread.currentThread().isInterrupted()) {
-                System.out.println("\nError has occurred: UI shutting down.");
-                System.exit(0);
-            }
-
-            try {
-                String response = handleServerResponse();
-                Command command = Command.createFromString(response);
-
-                int currentScore = Integer.parseInt(command.get("score"));
-                String currentWord = command.get("letters");
-                int remainingAttempts = Integer.parseInt(command.get("remaining_attempts"));
-
-                this.game.setCurrentScore(currentScore);
-                this.game.setCurrentWord(currentWord);
-                this.game.setRemainingAttempts(remainingAttempts);
-
-                TerminalView.showCurrentScore(currentWord, currentScore, remainingAttempts);
-
-                if (!this.game.getCurrentWord().contains("_")) {
-                    this.game.setRemainingAttempts(0);
-                }
-
-                this.terminal.showHelp();
-
-            } catch (InterruptedException e) {
-                controller.stopServices();
-            } catch (Exception e) {
-                controller.stopServices();
-            }
+      while (true) {
+        // Sleep to await responses
+        try {
+          Thread.sleep(500);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
         }
+
+        if (!this.handler.gameInitiated.get() && !this.handler.waitingForServerResponse.get()){
+          try {
+            this.handler.waitingForServerResponse.set(true);
+            this.handler.controller.startGame();
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        } else if (this.handler.gameInitiated.get() && !this.handler.waitingForServerResponse.get()){
+          try {
+            String choice = this.handler.controller.initiateUserGuess();
+
+            if (choice.equals("1")) {
+              this.handler.controller.guessCharacter();
+              this.handler.waitingForServerResponse.set(true);
+            } else if (choice.equals("2")) {
+              this.handler.controller.guessWord();
+              this.handler.waitingForServerResponse.set(true);
+            }
+          } catch (IOException e) {
+            e.printStackTrace();
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
+      }
     }
+  }
 }
