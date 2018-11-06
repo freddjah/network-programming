@@ -10,10 +10,16 @@ public class GameController {
   Game game;
   int score = 0;
 
+  /*
+   * Start a new game
+   */
   public void startGame() throws IOException {
     this.game = this.createGame();
   }
 
+  /*
+   * Guess a character
+   */
   public void guessChar(Character character) throws Exception {
 
     if (this.game.getHasEnded()) {
@@ -22,11 +28,12 @@ public class GameController {
 
     this.game.guessChar(character);
 
-    if (this.game.getHasEnded()) {
-      this.score += this.game.getWon() ? 1 : -1;
-    }
+    this.increaseScoreIfWon();
   }
 
+  /*
+   * Guess a word
+   */
   public void guessWord(String word) throws Exception {
 
     if (this.game.getHasEnded()) {
@@ -35,11 +42,22 @@ public class GameController {
 
     this.game.guessWord(word);
 
+    this.increaseScoreIfWon();
+  }
+
+  /*
+   * Increase the score if the last game was won
+   */
+  private void increaseScoreIfWon() throws Exception {
+
     if (this.game.getHasEnded()) {
       this.score += this.game.getWon() ? 1 : -1;
     }
   }
 
+  /*
+   * Build up a state command to return to client
+   */
   public Command getState() {
 
     Command command = new Command("state");
@@ -50,6 +68,9 @@ public class GameController {
     return command;
   }
 
+  /*
+   * Create a new game with random word
+   */
   private Game createGame() throws IOException {
 
     String wordListFilePath = System.getProperty("user.dir") + "/resources/words.txt";
