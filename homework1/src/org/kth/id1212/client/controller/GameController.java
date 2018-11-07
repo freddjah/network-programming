@@ -8,6 +8,7 @@ import org.kth.id1212.client.view.OutputTerminalView;
 import org.kth.id1212.common.Command;
 import org.kth.id1212.client.model.GameViewModel;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GameController extends Thread {
   private ServerHandler server;
@@ -82,10 +83,15 @@ public class GameController extends Thread {
   }
 
   public void printScore(GameViewModel game, boolean gameInitiated) {
-    if (gameInitiated) {
-      this.outputHandler.println("\n" + game.toString());
-    } else {
-      this.outputHandler.println(game.toString());
+    this.outputHandler.println("\n\n" + game.toString());
+  }
+
+  public void loading(AtomicBoolean waitingForServerResponse) throws InterruptedException {
+    this.outputHandler.print("Waiting for server");
+
+    while (waitingForServerResponse.get()) {
+      this.outputHandler.print(".");
+      Thread.sleep(5);
     }
   }
 }

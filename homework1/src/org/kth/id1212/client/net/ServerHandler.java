@@ -52,7 +52,15 @@ public class ServerHandler extends Thread {
     StringBuilder sb = new StringBuilder();
 
     while (bytesToRead > 0) {
-      sb.append((char) this.responseDataReader.read());
+
+      int charCode = this.responseDataReader.read();
+
+      if (charCode == -1) {
+        System.out.println("Server is not responding. Shutting down.");
+        System.exit(-1);
+      }
+
+      sb.append((char) charCode);
       bytesToRead--;
     }
 

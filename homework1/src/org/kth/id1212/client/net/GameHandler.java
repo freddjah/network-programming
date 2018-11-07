@@ -26,8 +26,8 @@ public class GameHandler extends Thread {
     while(true) {
       try {
         GameViewModel game = controller.receiveServerResponse();
-        this.controller.printScore(game, this.gameInitiated.get());
         this.gameInitiated.set(game.getGameStarted());
+        this.controller.printScore(game, this.gameInitiated.get());
         this.waitingForServerResponse.set(false);
       } catch (InterruptedException e) {
         e.printStackTrace();
@@ -52,18 +52,14 @@ public class GameHandler extends Thread {
     @Override
     public void run() {
       while (true) {
-        // Sleep to await responses
-        try {
-          Thread.sleep(500);
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-
         if (!this.handler.gameInitiated.get() && !this.handler.waitingForServerResponse.get()){
           try {
             this.handler.waitingForServerResponse.set(true);
             this.handler.controller.startGame();
+            this.handler.controller.loading(this.handler.waitingForServerResponse);
           } catch (IOException e) {
+            e.printStackTrace();
+          } catch (InterruptedException e) {
             e.printStackTrace();
           }
         } else if (this.handler.gameInitiated.get() && !this.handler.waitingForServerResponse.get()){
@@ -73,9 +69,11 @@ public class GameHandler extends Thread {
             if (choice.equals("1")) {
               this.handler.controller.guessCharacter();
               this.handler.waitingForServerResponse.set(true);
+              this.handler.controller.loading(this.handler.waitingForServerResponse);
             } else if (choice.equals("2")) {
               this.handler.controller.guessWord();
               this.handler.waitingForServerResponse.set(true);
+              this.handler.controller.loading(this.handler.waitingForServerResponse);
             }
           } catch (IOException e) {
             e.printStackTrace();

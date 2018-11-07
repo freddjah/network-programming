@@ -58,12 +58,19 @@ public class SessionHandler extends Thread {
     }
   }
 
-  private String read(int bytesToRead) throws IOException {
+  private String read(int bytesToRead) throws IOException, Exception {
 
     StringBuilder sb = new StringBuilder();
 
     while (bytesToRead > 0) {
-      sb.append((char) this.clientReader.read());
+
+      int charCode = this.clientReader.read();
+
+      if (charCode == -1) {
+        throw new Exception("Could not read, client probably disconnected");
+      }
+
+      sb.append((char) charCode);
       bytesToRead--;
     }
 
