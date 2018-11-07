@@ -8,72 +8,47 @@ import java.io.IOException;
 /**
  * GameHandler
  */
-public class GameHandler extends Thread {
+public class GameHandler {
 
   protected GameController controller;
   protected AtomicBoolean waitingForServerResponse = new AtomicBoolean(false);
   protected AtomicBoolean gameInitiated = new AtomicBoolean(false);
 
+  /**
+   * The GameHandles creates two threads, one who's responsible for user interaction and another thread that is responsible for capturing server responses
+   * @param controller A GameController that has necessary methods that each thread can use.
+   */
   public GameHandler(GameController controller) {
     this.controller = controller;
 
-    new GameLoop(this).start();
-    this.start();
-  }
-
-  @Override
-  public void run() {
-    while(true) {
-      try {
-        GameViewModel game = controller.receiveServerResponse();
-        this.gameInitiated.set(game.getGameStarted());
-        this.controller.printScore(game, this.gameInitiated.get());
-        this.waitingForServerResponse.set(false);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      } catch (IOException e) {
-        e.printStackTrace();
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
-}
-
-  /**
-   * GameLoop
-   */
-  public class GameLoop extends Thread {
-    private GameHandler handler;
-
-    GameLoop(GameHandler handler) {
-      this.handler = handler;
-    }
-
-    @Override
-    public void run() {
+    // Responsible for handling user interaction
+    Thread userInputHandler = new Thread(() -> {
       while (true) {
-        if (!this.handler.gameInitiated.get() && !this.handler.waitingForServerResponse.get()){
+        // If no game is active
+        if (!this.gameInitiated.get() && !this.waitingForServerResponse.get()) {
           try {
-            this.handler.waitingForServerResponse.set(true);
-            this.handler.controller.startGame();
-            this.handler.controller.loading(this.handler.waitingForServerResponse);
+            this.waitingForServerResponse.set(true);
+            this.controller.startGame();
+            this.controller.loading(this.waitingForServerResponse);
           } catch (IOException e) {
             e.printStackTrace();
           } catch (InterruptedException e) {
             e.printStackTrace();
           }
-        } else if (this.handler.gameInitiated.get() && !this.handler.waitingForServerResponse.get()){
+        } 
+        // If a game is started and we are not awaiting a server response.
+        else if (this.gameInitiated.get() && !this.waitingForServerResponse.get()) {
           try {
-            String choice = this.handler.controller.initiateUserGuess();
+            String choice = this.controller.initiateUserGuess();
 
             if (choice.equals("1")) {
-              this.handler.controller.guessCharacter();
-              this.handler.waitingForServerResponse.set(true);
-              this.handler.controller.loading(this.handler.waitingForServerResponse);
+              this.controller.guessCharacter();
+              this.waitingForServerResponse.set(true);
+              this.controller.loading(this.waitingForServerResponse);
             } else if (choice.equals("2")) {
-              this.handler.controller.guessWord();
-              this.handler.waitingForServerResponse.set(true);
-              this.handler.controller.loading(this.handler.waitingForServerResponse);
+              this.controller.guessWord();
+              this.waitingForServerResponse.set(true);
+              this.controller.loading(this.waitingForServerResponse);
             }
           } catch (IOException e) {
             e.printStackTrace();
@@ -82,6 +57,27 @@ public class GameHandler extends Thread {
           }
         }
       }
-    }
+    });
+
+    // Responsible for capturing server responses and prompting the UI with the received score information.
+    Thread serverResponseHandler = new Thread(() -> {
+      while(true) {
+        try {
+          GameViewModel game = controller.receiveServerResponse();
+          this.gameInitiated.set(game.getGameStarted());
+          this.controller.printScore(game);
+          this.waitingForServerResponse.set(false);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        } catch (IOException e) {
+          e.printStackTrace();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    });
+
+    userInputHandler.start();
+    serverResponseHandler.start();
   }
 }

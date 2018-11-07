@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 /**
- * InputTerminalView
+ * InputTerminalView is responsible for reading input
  */
 public class InputTerminalView implements InputHandler {
 

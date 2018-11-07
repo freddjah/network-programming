@@ -5,6 +5,9 @@ public class GameViewModel {
   private int score;
   private int remainingAttempts;
 
+  /**
+   * A representation of a game.
+   */
   public GameViewModel(String currentWord, int score, int remainingAttempts) {
     this.currentWord = currentWord;
     this.score = score;

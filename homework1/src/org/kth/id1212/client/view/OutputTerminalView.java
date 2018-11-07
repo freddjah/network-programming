@@ -2,6 +2,9 @@ package org.kth.id1212.client.view;
 
 import org.kth.id1212.client.net.OutputHandler;
 
+/**
+ * Responsible for handling thread safe terminal outputs.
+ */
 public class OutputTerminalView implements OutputHandler {
 
   @Override

@@ -15,9 +15,14 @@ public class Client {
         ServerHandler server = new ServerHandler("localhost", 3000);
 
         GameController gameController = new GameController(server);
+
+        // Setup thread safe outputhandler
         gameController.setOutputHandler(new OutputTerminalView());
+
+        // Setup user input handler
         gameController.setInputHandler(new InputTerminalView());
 
+        // Start game
         new GameHandler(gameController);
     }
 }
