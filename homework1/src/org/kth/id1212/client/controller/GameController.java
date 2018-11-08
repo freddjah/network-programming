@@ -43,7 +43,7 @@ public class GameController {
           }
 
           // User wants to guess a word
-          else if (userInput.equals(this.CMD_GUESS_WORD)) {
+          else if (userInput.equals(this.CMD_GUESS_WORD) && this.gameInitiated.get() && !this.waitingForServerResponse.get()) {
             String word = this.handleChoiceGuessWord();
             this.sendCommandToServer("guess_word", "word", word);
           }
@@ -62,6 +62,11 @@ public class GameController {
           // Game is live, but unknown command
           else if (this.gameInitiated.get() && !this.waitingForServerResponse.get()) {
             this.showGameInitiatedInformation();
+            this.showQuitGameInformation();
+          }
+          
+          // Game is live, waiting for server response but unknown command
+          else if (this.gameInitiated.get() && this.waitingForServerResponse.get()) {
             this.showQuitGameInformation();
           } else {
             this.showStartGameInformation();
@@ -115,7 +120,7 @@ public class GameController {
   private void showShuttingDownProgressBar() throws InterruptedException {
     int unnecessaryProgressBarCountdown = 10;
     this.outputHandler.print("Shutting down process.");
-    
+
     while (unnecessaryProgressBarCountdown > 0) {
       Thread.sleep(100);
       this.outputHandler.print(".");
@@ -189,7 +194,7 @@ public class GameController {
     boolean gameFinished = !letters.contains("_") || attemptsRemaining == 0;
 
     // Neat formatting for unsolved words with underscores.
-    if (!gameFinished) letters = letters.replace("", " ");
+    if (!gameFinished || attemptsRemaining == 0) letters = letters.replace("", " ");
 
     this.gameInitiated.set(!gameFinished);
     this.outputHandler.println("CURRENT WORD: " + letters + " || CURRENT SCORE: " + points + " || ATTEMPTS REMAINING: " + attemptsRemaining + "\n");
