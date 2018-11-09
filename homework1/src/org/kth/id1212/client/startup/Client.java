@@ -1,6 +1,5 @@
 package org.kth.id1212.client.startup;
 
-import org.kth.id1212.client.net.GameHandler;
 import org.kth.id1212.client.net.ServerHandler;
 import org.kth.id1212.client.controller.GameController;
 import org.kth.id1212.client.view.InputTerminalView;
@@ -13,11 +12,6 @@ import java.io.IOException;
 public class Client {
     public static void main(String[] args) throws IOException {
         ServerHandler server = new ServerHandler("localhost", 3000);
-
         GameController gameController = new GameController(server);
-        gameController.setOutputHandler(new OutputTerminalView());
-        gameController.setInputHandler(new InputTerminalView());
-
-        new GameHandler(gameController);
     }
 }

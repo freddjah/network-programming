@@ -58,16 +58,23 @@ public class SessionHandler extends Thread {
     }
   }
 
-  private String read(int bytes) throws Exception {
+  private String read(int bytesToRead) throws IOException, Exception {
 
-    char[] cbuf = new char[bytes];
-    int readBytes = this.clientReader.read(cbuf, 0, bytes);
+    StringBuilder sb = new StringBuilder();
 
-    if (readBytes == -1) {
-      throw new Exception("Could not read, client probably disconnected");
+    while (bytesToRead > 0) {
+
+      int charCode = this.clientReader.read();
+
+      if (charCode == -1) {
+        throw new Exception("Could not read, client probably disconnected");
+      }
+
+      sb.append((char) charCode);
+      bytesToRead--;
     }
 
-    return String.copyValueOf(cbuf);
+    return sb.toString();
   }
 
   private void write(String message) throws Exception {

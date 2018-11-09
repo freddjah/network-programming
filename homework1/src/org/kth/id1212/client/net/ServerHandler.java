@@ -14,6 +14,11 @@ public class ServerHandler extends Thread {
   private DataOutputStream requestDataStream;
   private BufferedReader responseDataReader;
 
+  /**
+   * The ServerHandler is responsible for handling the connection to the server.
+   * @param serverUrl
+   * @param serverPort
+   */
   public ServerHandler(String serverUrl, int serverPort) throws IOException {
     try {
       this.connection = new Socket(serverUrl, serverPort);
@@ -25,12 +30,17 @@ public class ServerHandler extends Thread {
     this.responseDataReader = new BufferedReader(new InputStreamReader(this.connection.getInputStream()));
   }
 
+  /**
+   * Sends a message
+   */
   public void send(String message) throws IOException {
     String responseLength = String.format("%06d", message.length());
-    System.out.println("Sending: " + responseLength + message);
     this.requestDataStream.writeBytes(responseLength + message);
   }
 
+  /**
+   * Receives a message
+   */
   public String receive() throws IOException, InvalidCommandException {
     int contentLength = 0;
 
@@ -48,12 +58,23 @@ public class ServerHandler extends Thread {
   }
 
 
+  /**
+   * Reads chosen amount of bytes from the server.
+   */
   private String read(int bytesToRead) throws IOException {
 
     StringBuilder sb = new StringBuilder();
 
     while (bytesToRead > 0) {
-      sb.append((char) this.responseDataReader.read());
+
+      int charCode = this.responseDataReader.read();
+
+      if (charCode == -1) {
+        System.out.println("Server is not responding. Shutting down.");
+        System.exit(-1);
+      }
+
+      sb.append((char) charCode);
       bytesToRead--;
     }
 
