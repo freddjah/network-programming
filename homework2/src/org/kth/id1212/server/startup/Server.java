@@ -9,8 +9,12 @@ public class Server {
   public static void main(String[] args) {
 
     try {
+
+      System.out.println("Starting server...");
+
       GameServer server = new GameServer();
       server.start(SERVER_PORT);
+
     } catch (Exception e) {
       e.printStackTrace();
     }

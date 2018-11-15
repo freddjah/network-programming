@@ -44,43 +44,4 @@ public class EventLoop {
   public interface Callback {
     void run(Object o);
   }
-
-  /*
-  public static void main(String[] args) {
-
-    EventLoop eventLoop = new EventLoop();
-    boolean run = true;
-
-
-    try {
-      while (true) {
-
-        eventLoop.run();
-
-        if (run) {
-
-          run = false;
-
-          eventLoop.dispatch(() -> {
-            try {
-              Thread.sleep(1000);
-              return new String("THIS IS WORKING???");
-            } catch (InterruptedException e) {
-              e.printStackTrace();
-            }
-
-            return null;
-
-          }, (Object o) -> {
-
-            String message = (String) o;
-            System.out.println("Got message: " + message);
-          });
-        }
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-  */
 }

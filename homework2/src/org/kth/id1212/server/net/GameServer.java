@@ -1,6 +1,7 @@
 package org.kth.id1212.server.net;
 
 import org.kth.id1212.common.Command;
+import org.kth.id1212.common.InvalidCommandException;
 import org.kth.id1212.server.controller.GameController;
 import org.kth.id1212.server.model.WordList;
 
@@ -37,83 +38,150 @@ public class GameServer {
     while (true) {
 
       this.selector.select();
-
       this.eventLoop.run();
 
       Iterator<SelectionKey> keys = this.selector.selectedKeys().iterator();
-
       while (keys.hasNext()) {
 
         SelectionKey key = keys.next();
         keys.remove();
 
         if (key.isAcceptable()) {
-
-          ServerSocketChannel server = (ServerSocketChannel) key.channel();
-          SocketChannel channel = server.accept();
-          channel.configureBlocking(false);
-          channel.register(this.selector, SelectionKey.OP_READ, new Attachment());
-
+          this.handleNewConnection(key);
         } else if (key.isReadable()) {
-
-          SocketChannel channel = (SocketChannel) key.channel();
-          Attachment attachment = (Attachment) key.attachment();
-          channel.read(attachment.getBuffer());
-
-          this.parseCommand(attachment.getBuffer(), attachment.getGameController(), key);
-
+          this.readFromClient(key);
         } else if (key.isWritable()) {
-
-          SocketChannel channel = (SocketChannel) key.channel();
-          Attachment attachment = (Attachment) key.attachment();
-
-          ByteBuffer bytesToSend = ByteBuffer.wrap(attachment.gameController.getState().toString().getBytes());
-          channel.write(bytesToSend);
-          if (bytesToSend.hasRemaining()) {
-            bytesToSend.compact();
-          } else {
-            bytesToSend.clear();
-          }
-
-          key.interestOps(SelectionKey.OP_READ);
+          this.sendToClient(key);
         }
       }
     }
   }
 
-  void parseCommand(ByteBuffer buffer, GameController controller, SelectionKey key) throws Exception {
+  void handleNewConnection(SelectionKey key) throws IOException {
 
+    System.out.println("Client connected");
+
+    ServerSocketChannel server = (ServerSocketChannel) key.channel();
+    SocketChannel channel = server.accept();
+    channel.configureBlocking(false);
+    channel.register(this.selector, SelectionKey.OP_READ, new Attachment());
+  }
+
+  void readFromClient(SelectionKey key) throws Exception {
+
+    SocketChannel channel = (SocketChannel) key.channel();
+    Attachment attachment = (Attachment) key.attachment();
+
+    ByteBuffer buffer = attachment.getBuffer();
+
+    channel.read(buffer);
     String clientCommand = this.messageFromBuffer(buffer);
+    buffer.clear();
+
+    try {
+      this.parseCommand(clientCommand, key);
+    } catch (InvalidCommandException e) {
+
+      System.out.println("Got invalid command: \"" + clientCommand + "\"");
+      attachment.setException(e);
+      key.interestOps(SelectionKey.OP_WRITE);
+    }
+  }
+
+  void sendToClient(SelectionKey key) throws IOException {
+
+    SocketChannel channel = (SocketChannel) key.channel();
+    Attachment attachment = (Attachment) key.attachment();
+    String response;
+
+    if (attachment.hasException()) {
+
+      Command errorCommand = new Command("error");
+      errorCommand.set("message", attachment.getException().getMessage());
+      response = errorCommand.toString();
+      attachment.setException(null);
+    } else {
+      response = attachment.gameController.getState().toString();
+    }
+
+    ByteBuffer bytesToSend = ByteBuffer.wrap(response.getBytes());
+    channel.write(bytesToSend);
+    if (bytesToSend.hasRemaining()) {
+      bytesToSend.compact();
+    } else {
+      bytesToSend.clear();
+    }
+
+    this.setReadMode(key);
+  }
+
+  void parseCommand(String clientCommand, SelectionKey key) throws Exception {
+
     Command command = Command.createFromString(clientCommand.trim());
     String type = command.get("type");
 
     if (type.equals("start_game")) {
-
-      this.eventLoop.dispatch(() -> {
-
-        try {
-          WordList wordList = new WordList(System.getProperty("user.dir") + "/resources/words.txt");
-          return wordList.getRandomWord();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-
-        return null;
-      }, (Object result) -> {
-
-        String word = (String) result;
-        controller.startGame(word);
-        key.interestOps(SelectionKey.OP_WRITE);
-      });
+      this.startGame(key);
     } else if (type.equals("guess_char")) {
-      controller.guessChar(command.get("char").charAt(0));
-      key.interestOps(SelectionKey.OP_WRITE);
+      this.guessChar(command.get("char").charAt(0), key);
     } else if (type.equals("guess_word")) {
-      controller.guessWord(command.get("word"));
-      key.interestOps(SelectionKey.OP_WRITE);
+      this.guessWord(command.get("word"), key);
+    } else if (type.equals("exit")) {
+      this.disconnect(key);
+    } else {
+      throw new InvalidCommandException("No command with type " + command.get("type"));
     }
+  }
 
-    buffer.clear();
+  void startGame(SelectionKey key) {
+
+    Attachment attachment = (Attachment) key.attachment();
+
+    this.eventLoop.dispatch(() -> {
+
+      try {
+        WordList wordList = new WordList(System.getProperty("user.dir") + "/resources/words.txt");
+        return wordList.getRandomWord();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      return null;
+    }, (Object result) -> {
+
+      String word = (String) result;
+      attachment.getGameController().startGame(word);
+      this.setWriteMode(key);
+    });
+  }
+
+  void guessChar(char character, SelectionKey key) throws Exception {
+
+    Attachment attachment = (Attachment) key.attachment();
+    attachment.getGameController().guessChar(character);
+    this.setWriteMode(key);
+  }
+
+  void guessWord(String word, SelectionKey key) throws Exception {
+
+    Attachment attachment = (Attachment) key.attachment();
+    attachment.getGameController().guessWord(word);
+    this.setWriteMode(key);
+  }
+
+  void disconnect(SelectionKey key) throws IOException {
+
+    System.out.println("Disconnecting client");
+    SocketChannel channel = (SocketChannel) key.channel();
+    channel.close();
+  }
+
+  void setReadMode(SelectionKey key) {
+    key.interestOps(SelectionKey.OP_READ);
+  }
+
+  void setWriteMode(SelectionKey key) {
+    key.interestOps(SelectionKey.OP_WRITE);
   }
 
   private static String messageFromBuffer(ByteBuffer buffer) {
