@@ -1,6 +1,5 @@
 package org.kth.id1212.server.model;
 
-import java.util.HashMap;
 import java.util.HashSet;
 
 public class Game {

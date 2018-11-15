@@ -1,9 +1,7 @@
 package org.kth.id1212.server.controller;
 
 import org.kth.id1212.server.model.Game;
-import org.kth.id1212.server.model.WordList;
 import org.kth.id1212.common.Command;
-import java.io.IOException;
 
 public class GameController {
 

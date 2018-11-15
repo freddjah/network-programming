@@ -2,13 +2,11 @@ package org.kth.id1212.server.net;
 
 import org.kth.id1212.common.Command;
 import org.kth.id1212.common.InvalidCommandException;
-import org.kth.id1212.server.controller.GameController;
 import org.kth.id1212.server.model.WordList;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
