@@ -13,8 +13,8 @@ public class GameController {
   /*
    * Start a new game
    */
-  public void startGame() throws IOException {
-    this.game = this.createGame();
+  public void startGame(String word) {
+    this.game = new Game(word);
   }
 
   /*
@@ -66,15 +66,5 @@ public class GameController {
     command.set("score", Integer.toString(this.score));
 
     return command;
-  }
-
-  /*
-   * Create a new game with random word
-   */
-  private Game createGame() throws IOException {
-
-    String wordListFilePath = System.getProperty("user.dir") + "/resources/words.txt";
-    WordList wordList = new WordList(wordListFilePath);
-    return new Game(wordList.getRandomWord());
   }
 }
