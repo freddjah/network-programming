@@ -1,83 +1,171 @@
 package org.kth.id1212.client.net;
 
-import org.kth.id1212.common.InvalidCommandException;
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.Socket;
-import java.net.SocketException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
+import java.util.Iterator;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ServerHandler extends Thread {
+  private String serverUrl;
+  private int serverPort;
 
-  private Socket connection;
-  private DataOutputStream requestDataStream;
-  private BufferedReader responseDataReader;
+  private SocketChannel socketChannel;
+  private ByteBuffer msgFromServer = ByteBuffer.allocateDirect(1024);
+  private boolean serverConnectionEstablished = false;
+  private Selector selector;
+
+  private final LinkedBlockingQueue<String> outgoingMessages = new LinkedBlockingQueue<>();
+  private final LinkedBlockingQueue<String> incomingMessages = new LinkedBlockingQueue<>();
 
   /**
    * The ServerHandler is responsible for handling the connection to the server.
+   *
    * @param serverUrl
    * @param serverPort
    */
-  public ServerHandler(String serverUrl, int serverPort) throws IOException {
+  public ServerHandler(String serverUrl, int serverPort) {
+    this.serverUrl = serverUrl;
+    this.serverPort = serverPort;
+  }
+
+  @Override
+  public void run() {
     try {
-      this.connection = new Socket(serverUrl, serverPort);
-    } catch (SocketException e) {
-      System.out.println("Server is not responding. Shutting down.");
-      System.exit(-1);
+      initializeConnection();
+      initializeSelector();
+
+      while (this.serverConnectionEstablished) {
+
+        if (!this.outgoingMessages.isEmpty()) {
+          this.socketChannel.keyFor(this.selector).interestOps(SelectionKey.OP_WRITE);
+        }
+
+        selector.select();
+        Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
+        while (keys.hasNext()) {
+
+          SelectionKey key = keys.next();
+          keys.remove();
+
+          if (!key.isValid()) {
+            continue;
+          }
+
+          if (key.isConnectable()) {
+            connect(key);
+          } else if (key.isReadable()) {
+            receiveMessage();
+          } else if (key.isWritable()) {
+            sendMessage(key);
+          }
+        }
+      }
+    } catch (Exception e) {
+      System.out.println("Something went wrong with the server connection. Shutting down");
+      System.exit(0);
     }
-    this.requestDataStream = new DataOutputStream(this.connection.getOutputStream());
-    this.responseDataReader = new BufferedReader(new InputStreamReader(this.connection.getInputStream()));
+  }
+  
+  public void shutDownConnection() throws IOException {
+    this.socketChannel.close();
   }
 
   /**
-   * Sends a message
+   * Fetch message received from server
+   * @return String
    */
-  public void send(String message) throws IOException {
-    String responseLength = String.format("%06d", message.length());
-    this.requestDataStream.writeBytes(responseLength + message);
-  }
-
-  /**
-   * Receives a message
-   */
-  public String receive() throws IOException, InvalidCommandException {
-    int contentLength = 0;
-
-    try {
-      contentLength = Integer.parseInt(this.read(6));
-    } catch (NumberFormatException e) {
-      e.printStackTrace();
-      throw new InvalidCommandException("Could not parse command.");
-    } catch (SocketException e) {
-      System.out.println("Server is not responding. Shutting down.");
-      System.exit(-1);
+  public String retrieveMessage() {
+    synchronized (this.incomingMessages) {
+      try {
+        while (this.incomingMessages.isEmpty()) this.incomingMessages.wait();
+        return this.incomingMessages.take();
+      } catch (InterruptedException e) {
+        System.out.println("Something went wrong with the server connection. Shutting down");
+        System.exit(0);
+        return null;
+      }
     }
-
-    return this.read(contentLength);
   }
 
+  private void receiveMessage() {
+    synchronized (incomingMessages) {
+      try {
+        this.msgFromServer.clear();
+        int numOfReadBytes = socketChannel.read(msgFromServer);
+
+        if (numOfReadBytes == -1) {
+          throw new Exception("Could not read");
+        }
+
+        String message = messageFromBuffer(this.msgFromServer);
+        incomingMessages.put(message);
+        incomingMessages.notify();
+      } catch (Exception e) {
+        System.out.println("Something went wrong with the server connection. Shutting down.");
+        System.exit(0);
+      }
+    }
+  }
 
   /**
-   * Reads chosen amount of bytes from the server.
+   * Add message to outgoing queue
    */
-  private String read(int bytesToRead) throws IOException {
+  public void addMessage(String message) {
+    synchronized (this.outgoingMessages) {
+      try {
+        this.outgoingMessages.put(message);
+        this.selector.wakeup();
+      } catch (InterruptedException e) {
+        System.out.println("Something went wrong with the server connection. Shutting down");
+        System.exit(0);
+      }
+    }
+  }
 
-    StringBuilder sb = new StringBuilder();
+  private void sendMessage(SelectionKey key) {
+    synchronized (this.outgoingMessages) {
+      try {
+        ByteBuffer messageBuffer = ByteBuffer.wrap(this.outgoingMessages.take().getBytes());
+        this.socketChannel.write(messageBuffer);
 
-    while (bytesToRead > 0) {
+        if (messageBuffer.hasRemaining()) messageBuffer.compact();
+        else messageBuffer.clear();
 
-      int charCode = this.responseDataReader.read();
-
-      if (charCode == -1) {
-        System.out.println("Server is not responding. Shutting down.");
-        System.exit(-1);
+        key.interestOps(SelectionKey.OP_READ);
+      } catch (Exception e) {
+        System.out.println("Something went wrong with the server connection. Shutting down");
+        System.exit(0);
       }
 
-      sb.append((char) charCode);
-      bytesToRead--;
     }
+  }
 
-    return sb.toString();
+  private static String messageFromBuffer(ByteBuffer buffer) {
+    buffer.flip();
+    byte[] bytes = new byte[buffer.remaining()];
+    buffer.get(bytes);
+    return new String(bytes);
+  }
+
+  private void initializeConnection() throws IOException {
+    this.socketChannel = SocketChannel.open();
+    this.socketChannel.configureBlocking(false);
+    this.socketChannel.connect(new InetSocketAddress(serverUrl, serverPort));
+    this.serverConnectionEstablished = true;
+  }
+
+  private void initializeSelector() throws IOException {
+    this.selector = Selector.open();
+    this.socketChannel.register(selector, SelectionKey.OP_CONNECT);
+  }
+
+  private void connect(SelectionKey key) throws IOException {
+    socketChannel.finishConnect();
+    key.interestOps(SelectionKey.OP_READ);
   }
 }
