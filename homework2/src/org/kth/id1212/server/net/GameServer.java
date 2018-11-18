@@ -118,16 +118,26 @@ public class GameServer {
     Command command = Command.createFromString(clientCommand.trim());
     String type = command.get("type");
 
-    if (type.equals("start_game")) {
-      this.startGame(key);
-    } else if (type.equals("guess_char")) {
-      this.guessChar(command.get("char").charAt(0), key);
-    } else if (type.equals("guess_word")) {
-      this.guessWord(command.get("word"), key);
-    } else if (type.equals("exit")) {
-      this.disconnect(key);
-    } else {
-      throw new InvalidCommandException("No command with type " + command.get("type"));
+    switch (type) {
+
+      case "start_game":
+        this.startGame(key);
+        break;
+
+      case "guess_char":
+        this.guessChar(command.get("char").charAt(0), key);
+        break;
+
+      case "guess_word":
+        this.guessWord(command.get("word"), key);
+        break;
+
+      case "exit":
+        this.disconnect(key);
+        break;
+
+      default:
+        throw new InvalidCommandException("No command with type " + command.get("type"));
     }
   }
 

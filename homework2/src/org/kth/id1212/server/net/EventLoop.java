@@ -17,9 +17,7 @@ public class EventLoop {
       try {
 
         Object result = function.run();
-        this.callbacks.put(() -> {
-          callback.run(result);
-        });
+        this.callbacks.put(() -> callback.run(result));
         this.wakeup.run();
 
       } catch (InterruptedException e) {
