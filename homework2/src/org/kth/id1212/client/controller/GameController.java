@@ -68,20 +68,6 @@ public class GameController {
     Command exitCommand = new Command("exit");
     this.server.addMessage(exitCommand.toString());
     this.server.shutDownConnection();
-    showShuttingDownProgressBar();
-  }
-
-  private void showShuttingDownProgressBar() throws InterruptedException {
-    int unnecessaryProgressBarCountdown = 10;
-    this.outputHandler.print("Shutting down process.");
-
-    while (unnecessaryProgressBarCountdown > 0) {
-      Thread.sleep(100);
-      this.outputHandler.print(".");
-      unnecessaryProgressBarCountdown--;
-    }
-
-    System.exit(0);
   }
   
   /**

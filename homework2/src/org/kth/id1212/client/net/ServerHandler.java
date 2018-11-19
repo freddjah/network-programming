@@ -8,7 +8,6 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class ServerHandler extends Thread {
   private String serverUrl;
@@ -70,9 +69,9 @@ public class ServerHandler extends Thread {
       System.exit(0);
     }
   }
-  
+
   public void shutDownConnection() throws IOException {
-    this.socketChannel.close();
+    //this.socketChannel.close();
   }
 
   /**
@@ -106,7 +105,7 @@ public class ServerHandler extends Thread {
         incomingMessages.put(message);
         incomingMessages.notify();
       } catch (Exception e) {
-        System.out.println("Something went wrong with the server connection. Shutting down.");
+        System.out.println("Game server connection was terminated. Shutting down client.");
         System.exit(0);
       }
     }
