@@ -64,10 +64,9 @@ public class GameController {
   /**
    * Sends exit command to server and shuts down server connection
    */
-  public void shutDownClient() throws InterruptedException, IOException {
+  public void shutDownClient() {
     Command exitCommand = new Command("exit");
     this.server.addMessage(exitCommand.toString());
-    this.server.shutDownConnection();
   }
   
   /**

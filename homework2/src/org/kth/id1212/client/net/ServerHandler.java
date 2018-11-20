@@ -70,10 +70,6 @@ public class ServerHandler extends Thread {
     }
   }
 
-  public void shutDownConnection() throws IOException {
-    //this.socketChannel.close();
-  }
-
   /**
    * Fetch message received from server
    * @return String
