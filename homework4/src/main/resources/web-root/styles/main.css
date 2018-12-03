@@ -1,11 +1,15 @@
 .container {
     text-align: center;
     margin: 30px auto;
-    width: 300px;
+    width: 500px;
 }
 
 table {
     width: 100%;
+}
+
+table th {
+    text-align: center;
 }
 
 label {
@@ -38,4 +42,25 @@ button[type=submit] {
     padding: 5px;
     font-size: 80%;
     text-align: left;
+}
+
+.error-page h1 {
+    font-size: 190%;
+}
+
+.button-error {
+    background: rgb(202, 60, 60); /* this is a maroon */
+    color: #fff;
+}
+
+.create-page form > div {
+    margin-top: 30px;
+}
+
+.info {
+    background: rgb(66, 184, 221);
+    color: #fff;
+    padding: 5px 10px;
+    width: 100%;
+    display: block;
 }

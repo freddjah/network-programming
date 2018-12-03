@@ -30,8 +30,19 @@ public class CurrencyConversionService {
     return this.currencyConversionRepository.save(new CurrencyConversion(fromCurrency, toCurrency, conversionRate));
   }
 
+  public void deleteCurrency(long id) {
+    this.currencyConversionRepository.deleteById(id);
+  }
+
   public CurrencyConversion updateCurrency(long id, String fromCurrency, String toCurrency, Float conversionRate) {
-    return null;
+
+    CurrencyConversion conversion = this.findCurrency(id);
+    conversion.setFrom(fromCurrency);
+    conversion.setTo(toCurrency);
+    conversion.setConversionRate(conversionRate);
+    this.currencyConversionRepository.save(conversion);
+
+    return conversion;
   }
 
   public CurrencyConversion findCurrency(Long id) {
@@ -45,7 +56,11 @@ public class CurrencyConversionService {
     return conversions;
   }
 
-  public static float convert(float conversionRate, float amount) {
-    return amount * conversionRate;
+  public float convert(CurrencyConversion currencyConversion, float amount) {
+
+    currencyConversion.incrementNumberOfConversions();
+    this.currencyConversionRepository.save(currencyConversion);
+
+    return amount * currencyConversion.getConversionRate();
   }
 }

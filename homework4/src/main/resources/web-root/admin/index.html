@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<main layout:fragment="content">
+    <div class="container admin-page">
+        <h1>Admin</h1>
+
+        <div th:if="${message}" class="info">
+            <span th:text="${message}"></span>
+        </div>
+
+        <p>Total number of conversions by users: <span th:text="${totalNumberOfConversions}"></span></p>
+
+        <a href="/admin/create" class="pure-button pure-button-primary" style="margin-bottom: 30px;">Create new</a>
+        <table class="pure-table pure-table-bordered">
+            <thead>
+            <tr>
+                <th>From</th>
+                <th>To</th>
+                <th>Conversion rate</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="conversion : ${currencyConversions}">
+                <td th:text="${conversion.getFrom()}"></td>
+                <td th:text="${conversion.getTo()}"></td>
+                <td th:text="${conversion.getConversionRate()}"></td>
+                <td>
+                    <a th:href="@{'/admin/edit/' + ${conversion.getId()}}" class="pure-button">Edit</a>
+                    <a th:href="@{'/admin/delete/' + ${conversion.getId()}}" class="pure-button button-error">Delete</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+    </div>
+</main>
+</html>

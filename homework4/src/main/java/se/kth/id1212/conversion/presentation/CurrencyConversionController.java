@@ -2,9 +2,11 @@ package se.kth.id1212.conversion.presentation;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 import se.kth.id1212.conversion.application.CurrencyConversionService;
 import se.kth.id1212.conversion.domain.CurrencyConversion;
@@ -19,24 +21,9 @@ import java.util.List;
 @Controller
 @Scope("session")
 public class CurrencyConversionController {
-  static final String DEFAULT_PAGE_URL = "/";
-  static final String GET_CURRENCY_URL = "/conversion/{id}";
 
   @Autowired
   private CurrencyConversionService conversionService;
-
-  /**
-   * A get request for the account page.
-   *
-   * @param model Model objects used by the account page.
-   * @return The account page url.
-   */
-  /*@GetMapping(DEFAULT_PAGE_URL)
-  public String index(Model model) {
-    currentCurrency = currencyService.createCurrency("USD", "SEK", (float) 9.046);
-    model.addAttribute("test", currentCurrency.toString());
-    return "index";
-  }*/
 
   @GetMapping("/")
   public String index(Model model, CurrencyConversionForm currencyConversionForm) {
@@ -49,12 +36,11 @@ public class CurrencyConversionController {
   @PostMapping("/")
   public String convert(@Valid CurrencyConversionForm form, BindingResult result, Model model) {
     if (result.hasErrors()) {
-      System.out.println("Shit went wrong with form \n" + result.toString());
       return index(model, form);
     }
 
     CurrencyConversion currencyConversion = this.conversionService.findCurrency(form.getCurrencyId());
-    float convertedAmount = CurrencyConversionService.convert(currencyConversion.getConversionRate(), form.getAmount());
+    float convertedAmount = this.conversionService.convert(currencyConversion, form.getAmount());
 
     model.addAttribute("amount", form.getAmount());
     model.addAttribute("convertedAmount", convertedAmount);
@@ -63,11 +49,96 @@ public class CurrencyConversionController {
     return "convert";
   }
 
-  // Get CurrencyConversion with Id
-  /*@RequestMapping(GET_CURRENCY_URL)
-  public String showCurrency(@PathVariable("id") long id, Model model) {
-    currentCurrency = currencyService.findCurrency(id);
-    model.addAttribute("test", currentCurrency.getName());
-    return "index";
-  }*/
+  // ADMIN PAGES FOR CURRENCY CONVERSION
+
+  @GetMapping("/admin")
+  public String adminIndex(@Param(value="message") String message, Model model) {
+    List<CurrencyConversion> currencyConversions = conversionService.findAll();
+
+    int totalNumberOfConversions = 0;
+    for (CurrencyConversion conversion : currencyConversions) {
+      totalNumberOfConversions += conversion.getNumberOfConversions();
+    }
+
+    model.addAttribute("currencyConversions", currencyConversions);
+    model.addAttribute("totalNumberOfConversions", totalNumberOfConversions);
+
+    if (message != null) {
+      switch (message) {
+
+        case "create":
+          model.addAttribute("message", "The conversion was successfully created.");
+          break;
+
+        case "delete":
+          model.addAttribute("message", "The conversion was successfully deleted.");
+          break;
+
+        case "edit":
+          model.addAttribute("message", "The conversion was successfully updated.");
+          break;
+      }
+    }
+
+    return "admin/index";
+  }
+
+  @GetMapping("/admin/create")
+  public String adminCreateConversionForm(Model model, UpdateForm updateForm) {
+
+    model.addAttribute("updateForm", updateForm);
+    return "admin/create";
+  }
+
+  @PostMapping("/admin/create")
+  public String adminCreateConversion(@Valid UpdateForm form, BindingResult result, Model model) {
+
+    if (result.hasErrors()) {
+      return adminCreateConversionForm(model, form);
+    }
+
+    this.conversionService.createCurrency(form.getFrom(), form.getTo(), form.getConversionRate());
+
+    model.addAttribute("message", "create");
+
+    return "redirect:/admin";
+  }
+
+  @GetMapping("/admin/edit/{id}")
+  public String adminEditConversionForm(@PathVariable long id, UpdateForm updateForm, Model model) {
+
+    CurrencyConversion currencyConversion = this.conversionService.findCurrency(id);
+
+    updateForm.setFrom(currencyConversion.getFrom());
+    updateForm.setTo(currencyConversion.getTo());
+    updateForm.setConversionRate(currencyConversion.getConversionRate());
+    model.addAttribute("updateForm", updateForm);
+    model.addAttribute("conversion", currencyConversion);
+
+    return "admin/edit";
+  }
+
+  @PostMapping("/admin/edit/{id}")
+  public String adminEditConversion(@PathVariable long id, @Valid UpdateForm form, BindingResult result, Model model) {
+
+    if (result.hasErrors()) {
+      return adminEditConversionForm(id, form, model);
+    }
+
+    this.conversionService.updateCurrency(id, form.getFrom(), form.getTo(), form.getConversionRate());
+
+    model.addAttribute("message", "edit");
+
+    return "redirect:/admin";
+  }
+
+  @GetMapping("/admin/delete/{id}")
+  public String adminDeleteConversion(@PathVariable long id, Model model) {
+
+    this.conversionService.deleteCurrency(id);
+
+    model.addAttribute("message", "delete");
+
+    return "redirect:/admin";
+  }
 }

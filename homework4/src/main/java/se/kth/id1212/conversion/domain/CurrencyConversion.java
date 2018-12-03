@@ -12,17 +12,17 @@ public class CurrencyConversion implements CurrencyConversionDTO {
   @Column(name = "ID")
   private long id;
 
-  @Column(name = "from")
+  @Column(name = "from_currency")
   private String from;
 
-  @Column(name = "to")
+  @Column(name = "to_currency")
   private String to;
 
   @Column(name = "conversion_rate")
   private Float conversionRate;
 
   @Column(name = "number_of_conversions")
-  private Integer numberOfConversions;
+  private Integer numberOfConversions = 0;
 
   public CurrencyConversion(String from, String to, Float conversionRate) {
     this.from = from;
@@ -56,5 +56,21 @@ public class CurrencyConversion implements CurrencyConversionDTO {
   @Override
   public Integer getNumberOfConversions() {
     return this.numberOfConversions;
+  }
+
+  public void incrementNumberOfConversions() {
+    this.numberOfConversions++;
+  }
+
+  public void setFrom(String from) {
+    this.from = from;
+  }
+
+  public void setTo(String to) {
+    this.to = to;
+  }
+
+  public void setConversionRate(Float conversionRate) {
+    this.conversionRate = conversionRate;
   }
 }

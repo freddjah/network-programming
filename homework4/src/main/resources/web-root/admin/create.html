@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<main layout:fragment="content">
+    <div class="container create-page">
+        <h1>Admin - Create</h1>
+        <form method="POST" th:object="${updateForm}" th:action="@{/admin/create}">
+
+            <div>
+                <label for="from">From currency</label>
+                <input type="text" name="from" id="from" th:value="*{from}" minlength="3" maxlength="3" placeholder="SEK">
+                <span class="error" th:if="${#fields.hasErrors('from')}" th:errors="*{from}"></span>
+            </div>
+
+            <div>
+                <label for="to">To currency</label>
+                <input type="text" name="to" id="to" th:value="*{to}" minlength="3" maxlength="3" placeholder="USD">
+                <span class="error" th:if="${#fields.hasErrors('to')}" th:errors="*{to}"></span>
+            </div>
+
+            <div>
+                <label for="conversionRate">Conversion rate</label>
+                <input type="text" name="conversionRate" id="conversionRate" th:value="*{conversionRate}" placeholder="9.2">
+                <span class="error" th:if="${#fields.hasErrors('conversionRate')}" th:errors="*{conversionRate}"></span>
+            </div>
+
+            <div>
+                <button type="submit" class="pure-button pure-button-primary form-button">Create</button>
+            </div>
+        </form>
+    </div>
+</main>
+</html>

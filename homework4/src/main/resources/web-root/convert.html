@@ -2,8 +2,12 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
     <main layout:fragment="content">
         <div class="container convert-page">
-            <span th:text="${amount}"></span> <span th:text="${currencyConversion.getFrom()}"></span> = <span th:text="${convertedAmount}"></span> <span th:text="${currencyConversion.getTo()}"></span>
-            <a href="/" class="pure-button pure-button-primary">Convert another</a>
+            <div>
+                <span th:text="${amount}"></span> <span th:text="${currencyConversion.getFrom()}"></span> = <span th:text="${convertedAmount}"></span> <span th:text="${currencyConversion.getTo()}"></span>
+            </div>
+            <div>
+                <a href="/" class="pure-button pure-button-primary">Convert another</a>
+            </div>
         </div>
     </main>
 </html>

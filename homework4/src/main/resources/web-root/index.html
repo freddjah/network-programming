@@ -7,6 +7,7 @@
                 <tr>
                     <th>From</th>
                     <th>To</th>
+                    <th>Conversion rate</th>
                     <th></th>
                 </tr>
                 </thead>
@@ -14,6 +15,7 @@
                 <tr th:each="conversion : ${currencyConversions}">
                     <td th:text="${conversion.getFrom()}"></td>
                     <td th:text="${conversion.getTo()}"></td>
+                    <td th:text="${conversion.getConversionRate()}"></td>
                     <td>
                         <button th:attr="data-currency-id=${conversion.getId()}" class="pure-button">Select</button>
                     </td>
