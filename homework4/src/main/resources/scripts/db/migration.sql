@@ -32,8 +32,8 @@ CREATE TABLE `conversions` (
   `conversion_rate` float NOT NULL,
   `number_of_conversions` int(11) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
-  KEY `from` (`from`,`to`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  KEY `from` (`from_currency`,`to_currency`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 LOCK TABLES `conversions` WRITE;
 /*!40000 ALTER TABLE `conversions` DISABLE KEYS */;
