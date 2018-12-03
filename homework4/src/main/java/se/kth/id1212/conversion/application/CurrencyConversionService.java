@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import se.kth.id1212.conversion.domain.CurrencyConversion;
 import se.kth.id1212.conversion.repository.CurrencyConversionRepository;
 
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -29,12 +30,19 @@ public class CurrencyConversionService {
     return this.currencyConversionRepository.save(new CurrencyConversion(fromCurrency, toCurrency, conversionRate));
   }
 
+  public CurrencyConversion updateCurrency(long id, String fromCurrency, String toCurrency, Float conversionRate) {
+    return null;
+  }
+
   public CurrencyConversion findCurrency(Long id) {
     return this.currencyConversionRepository.findById(id).get();
   }
 
   public List<CurrencyConversion> findAll() {
-    return this.currencyConversionRepository.findAll();
+    List<CurrencyConversion> conversions = this.currencyConversionRepository.findAll();
+    conversions.sort(Comparator.comparing(CurrencyConversion::getFrom));
+
+    return conversions;
   }
 
   public static float convert(float conversionRate, float amount) {

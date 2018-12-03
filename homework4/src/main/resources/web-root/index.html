@@ -1,50 +1,44 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
-    <link rel="stylesheet" href="./styles/main.css">
-</head>
-<body>
-    <div class="container">
-        <table class="pure-table pure-table-bordered">
-            <thead>
-            <tr>
-                <th>From</th>
-                <th>To</th>
-                <th></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="conversion : ${currencyConversions}">
-                <td th:text="${conversion.getFrom()}"></td>
-                <td th:text="${conversion.getTo()}"></td>
-                <td>
-                    <button th:attr="data-currency-id=${conversion.getId()}" class="pure-button">Select</button>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+    <main layout:fragment="content">
+        <div class="container">
+            <table class="pure-table pure-table-bordered">
+                <thead>
+                <tr>
+                    <th>From</th>
+                    <th>To</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="conversion : ${currencyConversions}">
+                    <td th:text="${conversion.getFrom()}"></td>
+                    <td th:text="${conversion.getTo()}"></td>
+                    <td>
+                        <button th:attr="data-currency-id=${conversion.getId()}" class="pure-button">Select</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
 
-        <form method="POST" th:object="${currencyConversionForm}" th:action="@{/}">
+            <form method="POST" th:object="${currencyConversionForm}" th:action="@{/}">
 
-            <div>
-                <span class="error" th:if="${#fields.hasErrors('currencyId')}" th:errors="*{currencyId}">Amount Error</span>
-                <input type="hidden" name="currencyId" id="currency_id" th:value="*{currencyId}">
-            </div>
+                <div>
+                    <span class="error" th:if="${#fields.hasErrors('currencyId')}" th:errors="*{currencyId}">Amount Error</span>
+                    <input type="hidden" name="currencyId" id="currency_id" th:value="*{currencyId}">
+                </div>
 
-            <div style="margin-top: 30px;">
-                <label for="amount">Amount</label>
-                <input type="number" id="amount" name="amount" th:value="*{amount}">
-                <span class="error" th:if="${#fields.hasErrors('amount')}" th:errors="*{amount}">Amount Error</span>
-            </div>
+                <div style="margin-top: 30px;">
+                    <label for="amount">Amount</label>
+                    <input type="number" id="amount" name="amount" th:value="*{amount}">
+                    <span class="error" th:if="${#fields.hasErrors('amount')}" th:errors="*{amount}">Amount Error</span>
+                </div>
 
-            <div>
-                <button type="submit" class="pure-button pure-button-primary form-button">Convert</button>
-            </div>
-        </form>
-    </div>
-    <script type="text/javascript" src="/js/app.js"></script>
-</body>
+                <div>
+                    <button type="submit" class="pure-button pure-button-primary form-button">Convert</button>
+                </div>
+            </form>
+        </div>
+        <script type="text/javascript" src="/js/app.js"></script>
+    </main>
 </html>
