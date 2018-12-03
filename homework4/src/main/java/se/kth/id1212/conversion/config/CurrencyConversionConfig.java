@@ -1,4 +1,4 @@
-package se.kth.id1212.currency.config;
+package se.kth.id1212.conversion.config;
 
 import nz.net.ultraq.thymeleaf.LayoutDialect;
 import org.springframework.context.ApplicationContext;
@@ -23,7 +23,7 @@ import org.thymeleaf.templatemode.TemplateMode;
 // repositories.
 @EnableWebMvc
 @Configuration
-public class CurrencyConfig implements WebMvcConfigurer, ApplicationContextAware {
+public class CurrencyConversionConfig implements WebMvcConfigurer, ApplicationContextAware {
   private ApplicationContext applicationContext;
 
   /**

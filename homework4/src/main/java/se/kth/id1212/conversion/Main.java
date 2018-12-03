@@ -1,4 +1,4 @@
-package se.kth.id1212.currency;
+package se.kth.id1212.conversion;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
