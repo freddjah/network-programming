@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Hangman by Freemon</string>
+    <string name="enter_character_or_word">Enter character or word</string>
+</resources>
