@@ -7,7 +7,7 @@ public class GameViewModel {
 
     public GameViewModel(int score, String letters, int attemptsLeft) {
         this.score = score;
-        this.letters = letters;
+        this.letters = letters.replace("", " ");
         this.attemptsLeft = attemptsLeft;
     }
 

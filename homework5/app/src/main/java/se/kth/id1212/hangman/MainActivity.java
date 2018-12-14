@@ -1,19 +1,19 @@
 package se.kth.id1212.hangman;
 
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-
-import org.w3c.dom.Text;
 
 import java.io.IOException;
 
@@ -21,6 +21,7 @@ import se.kth.id1212.hangman.controller.GameController;
 import se.kth.id1212.hangman.model.GameViewModel;
 import se.kth.id1212.hangman.net.ServerHandler;
 import se.kth.id1212.hangman.validator.TextValidator;
+import se.kth.id1212.hangman.view.SnackbarFactory;
 
 public class MainActivity extends AppCompatActivity {
     private GameController gameController;
@@ -28,6 +29,13 @@ public class MainActivity extends AppCompatActivity {
     private TextView attemptsLeft;
     private TextView letters;
     private EditText inputField;
+
+    private BroadcastReceiver messageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            setInfoMessage(intent.getExtras().getString("message"));
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,8 +55,6 @@ public class MainActivity extends AppCompatActivity {
                 ServerHandler connection = connectToServer();
                 this.gameController = new GameController(connection);
 
-                progress.dismiss();
-
                 System.out.println("progress dismissed");
 
                 Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -59,19 +65,39 @@ public class MainActivity extends AppCompatActivity {
 
             } catch (Exception e) {
                 e.printStackTrace();
-                setErrorMessage("Unable to connect to server. Please restart the application.", 100000000);
+
+                setErrorMessage("Unable to connect to server. Please restart the application.");
+            } finally {
+                progress.dismiss();
             }
         }).start();
     }
 
-    private void setErrorMessage(String message, int duration) {
-        View rootView = this.getWindow().getDecorView().getRootView();
-        Snackbar.make(rootView, message, duration).show();
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, new IntentFilter("user_notification"));
     }
 
-    private void setInfoMessage(String message, int duration) {
-        View rootView = this.getWindow().getDecorView().getRootView();
-        Snackbar.make(rootView, message, duration).show();
+    @Override
+    protected void onStop() {
+        super.onStop();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
+    }
+
+    private void setErrorMessage(String message) {
+        ConstraintLayout mainContainer = findViewById(R.id.mainContainer);
+
+        Snackbar snackbar = SnackbarFactory.createErrorSnackbar(mainContainer, message);
+        snackbar.show();
+    }
+
+    private void setInfoMessage(String message) {
+        ConstraintLayout mainContainer = findViewById(R.id.mainContainer);
+
+        Snackbar snackbar = SnackbarFactory.createInfoSnackbar(mainContainer, message);
+        snackbar.show();
     }
 
     private void initButton() {
@@ -83,8 +109,19 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     GameViewModel model = this.gameController.guess(inputField.getText().toString());
                     this.updateGameFields(model);
+
+                    if (!model.getLetters().contains("_")) {
+                        this.setInfoMessage("Woohoo! Correct!");
+                    } else if (model.getAttemptsLeft() == 0) {
+                        this.setInfoMessage("Booo! Out of guesses.");
+                    } else {
+                        return;
+                    }
+
+                    this.inputField.setText("");
+                    this.startGame();
                 } catch (Exception e) {
-                    this.setErrorMessage("Something went wrong.", 4000);
+                    this.setErrorMessage("Something went wrong.");
                 }
             }).start();
 
@@ -97,28 +134,6 @@ public class MainActivity extends AppCompatActivity {
             this.letters.setText(model.getLetters());
             this.attemptsLeft.setText("Attempts left: " + model.getAttemptsLeft());
         });
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     private ServerHandler connectToServer() throws IOException {

@@ -5,7 +5,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import java.net.SocketException;
 
 public class ServerHandler extends Thread {
 
@@ -19,12 +18,7 @@ public class ServerHandler extends Thread {
      * @param serverPort
      */
     public ServerHandler(String serverUrl, int serverPort) throws IOException {
-        try {
-            this.connection = new Socket(serverUrl, serverPort);
-        } catch (SocketException e) {
-            e.printStackTrace();
-            System.out.println("Server is not responding. Shutting down.");
-        }
+        this.connection = new Socket(serverUrl, serverPort);
         this.requestDataStream = new DataOutputStream(this.connection.getOutputStream());
         this.responseDataReader = new BufferedReader(new InputStreamReader(this.connection.getInputStream()));
     }
@@ -43,15 +37,7 @@ public class ServerHandler extends Thread {
     public String receive() throws Exception {
         int contentLength = 0;
 
-        try {
-            contentLength = Integer.parseInt(this.read(6));
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
-            throw new Exception("Could not parse command.");
-        } catch (SocketException e) {
-            System.out.println("Server is not responding. Shutting down.");
-            System.exit(-1);
-        }
+        contentLength = Integer.parseInt(this.read(6));
 
         return this.read(contentLength);
     }
@@ -67,11 +53,6 @@ public class ServerHandler extends Thread {
         while (bytesToRead > 0) {
 
             int charCode = this.responseDataReader.read();
-
-            if (charCode == -1) {
-                System.out.println("Server is not responding. Shutting down.");
-                System.exit(-1);
-            }
 
             sb.append((char) charCode);
             bytesToRead--;

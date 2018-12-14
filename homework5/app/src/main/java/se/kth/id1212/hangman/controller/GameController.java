@@ -1,8 +1,6 @@
 package se.kth.id1212.hangman.controller;
 
 
-import android.widget.EditText;
-
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
