@@ -2,11 +2,12 @@ const md5 = require('md5')
 
 exports.createString = (data) => {
   const dataJSON = JSON.stringify(data)
-  return `${md5(dataJSON)} ${dataJSON}`
+  return `${md5(dataJSON)}${dataJSON}`
 }
 
 exports.isValidChecksum = (string) => {
-  const [md5checksum, data] = string.split(' ')
+  const md5checksum = string.slice(0, 32)
+  const data = string.slice(32)
 
   if (!md5checksum || !data) return false
 
@@ -14,7 +15,7 @@ exports.isValidChecksum = (string) => {
 }
 
 exports.getData = (string) => {
-  const [md5checksum, data] = string.split(' ')
+  const data = string.slice(32)
 
   return data
 }

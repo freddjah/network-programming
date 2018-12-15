@@ -1,11 +1,17 @@
-module.exports = (packet, next) => {
-  const [event, unverifedJSON] = packet
-  const unverifiedData = JSON.parse(unverifedJSON)
+const md5checksum = require('../common/md5checksum')
 
-  if (!md5checksum.isValidChecksum(unverifiedData)) {
+module.exports = (packet, next) => {
+  const [_event, dataJSON] = packet
+  const data = JSON.parse(dataJSON)
+
+  if (!md5checksum.isValidChecksum(data)) {
     console.error('Invalid checksum')
     return next(new Error('Invalid checksum.'))
   }
+
+  packet[1] = md5checksum.getData(data)
+
+  console.log(packet)
 
   next();
 }
