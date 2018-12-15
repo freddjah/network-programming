@@ -1,0 +1,22 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title></title>
+</head>
+<body>
+
+  <script src="http://localhost:4004/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io.connect('http://localhost:4004')
+
+    socket.on('hello', (data) => {
+      console.log(data)
+    })
+
+    socket.on('error', data => {
+      console.log(data)
+    })
+
+    socket.emit('hej', JSON.stringify("541c57960bb997942655d14e3b9607f9 hej"))
+  </script>
+</body>
+</html>
