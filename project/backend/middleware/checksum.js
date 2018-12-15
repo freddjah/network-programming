@@ -11,7 +11,5 @@ module.exports = (packet, next) => {
 
   packet[1] = md5checksum.getData(data)
 
-  console.log(packet)
-
   next();
 }

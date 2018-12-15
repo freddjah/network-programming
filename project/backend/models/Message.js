@@ -13,7 +13,6 @@ exports.create = (text, username) => {
 }
 
 exports.getAll = () => {
-  console.log('Model', messages)
   return messages
 }
 

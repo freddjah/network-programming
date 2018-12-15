@@ -8,6 +8,8 @@ const checksumMiddleware = require('./middleware/checksum')
 const userController = require('./controller/userController')
 const messageController = require('./controller/messageController')
 
+const md5checksum = require('./common/md5checksum')
+
 const PORT = process.env.PORT || 3000
 
 io.on('connection', (socket) => {
@@ -18,15 +20,17 @@ io.on('connection', (socket) => {
     socket.emit('success', `Successfully registered user ${username}`)
 
     const messages = messageController.getAll()
-    socket.emit('updateMessages', JSON.stringify(messages))
+    socket.emit('updateMessages', md5checksum.createString(JSON.stringify(messages)))
   })
 
   socket.on('newMessage', text => {
     const user = userController.getUser(socket.id)
 
-    const message = messageController.addMessage(text, user.username)
-    socket.broadcast('updateMessage', JSON.stringify(message))
-    socket.emit('updateMessage', JSON.stringify(message))
+    const message = messageController.addMessage(text, user)
+    socket.emit('success', 'Successfully added message')
+
+    socket.broadcast.emit('updateMessage', md5checksum.createString(JSON.stringify(message)))
+    socket.emit('updateMessage', md5checksum.createString(JSON.stringify(message)))
   })
 
   socket.on('disconnect', () => {

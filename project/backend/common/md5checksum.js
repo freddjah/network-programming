@@ -1,8 +1,7 @@
 const md5 = require('md5')
 
 exports.createString = (data) => {
-  const dataJSON = JSON.stringify(data)
-  return `${md5(dataJSON)}${dataJSON}`
+  return `${md5(data)}${data}`
 }
 
 exports.isValidChecksum = (string) => {
