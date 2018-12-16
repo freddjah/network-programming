@@ -10,7 +10,7 @@ const messageController = require('./controller/messageController')
 
 const md5checksum = require('./common/md5checksum')
 
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 3001
 
 io.on('connection', (socket) => {
   socket.use(checksumMiddleware)
