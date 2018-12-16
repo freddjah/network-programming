@@ -1,7 +1,7 @@
 const Message = require('../models/Message')
 
-exports.addMessage = (text, username) => {
-  return Message.create(text, username)
+exports.addMessage = (text, nickname) => {
+  return Message.create(text, nickname)
 }
 
 exports.getAll = () => {

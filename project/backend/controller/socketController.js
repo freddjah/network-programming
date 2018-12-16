@@ -9,18 +9,20 @@ exports.handleInitialConnection = (socket) => {
 }
 
 exports.handleNewMessage = (socket, text) => {
-  const user = userController.getUser(socket.id)
+  const nickname = socket.nickname
 
-  const message = messageController.addMessage(text, user)
+  const message = messageController.addMessage(text, nickname)
   socket.emit('success', 'Successfully added message')
 
   socket.broadcast.emit('messages', md5checksum.createString(JSON.stringify([message])))
   socket.emit('messages', md5checksum.createString(JSON.stringify([message])))
 }
 
-exports.handleNickname = (socket, username) => {
-  userController.addUser(socket.id, username)
-  socket.emit('success', `Successfully registered user ${username}`)
+exports.handleNickname = (socket, nickname) => {
+  userController.addUser(socket.id, nickname)
+  socket.nickname = nickname
+
+  socket.emit('success', `Successfully registered user ${nickname}`)
 }
 
 exports.handleDisconnect = (socket) => {

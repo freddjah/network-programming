@@ -1,7 +1,7 @@
 const User = require('../models/User')
 
-exports.addUser = (id, username) => {
-  User.create(id, username)
+exports.addUser = (id, nickname) => {
+  User.create(id, nickname)
 }
 
 exports.removeUser = (id) => {

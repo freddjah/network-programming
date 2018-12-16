@@ -1,7 +1,7 @@
 let users = {}
 
-exports.create = (id, username) => {
-  users[id] = username
+exports.create = (id, nickname) => {
+  users[id] = nickname
 }
 
 exports.remove = (id) => {
