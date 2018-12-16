@@ -14,9 +14,9 @@ io.on('connection', (socket) => {
 
   socketController.handleInitialConnection(socket)
 
-  socket.on('nickname', nickname => socketController.handleNickname(socket, nickname))
+  socket.on('nickname', user => socketController.handleNickname(socket, user))
 
-  socket.on('newMessage', text => socketController.handleNewMessage(socket, text))
+  socket.on('newMessage', message => socketController.handleNewMessage(socket, message))
 
   socket.on('disconnect', () => socketController.handleDisconnect(socket))
 })

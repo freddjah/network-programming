@@ -1,4 +1,3 @@
-const userController = require('./userController')
 const messageController = require('./messageController')
 
 const md5checksum = require('../common/md5checksum')
@@ -18,11 +17,10 @@ exports.handleNewMessage = (socket, text) => {
   socket.emit('messages', md5checksum.createString(JSON.stringify(messagesObject)))
 }
 
-exports.handleNickname = (socket, nickname) => {
-  userController.addUser(socket.id, nickname)
-  socket.nickname = nickname
+exports.handleNickname = (socket, user) => {
+  socket.nickname = user.nickname
 }
 
 exports.handleDisconnect = (socket) => {
-  userController.removeUser(socket.id)
+  delete socket.nickname
 }
