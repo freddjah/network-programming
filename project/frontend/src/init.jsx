@@ -7,11 +7,15 @@ import { Grid } from 'react-bootstrap'
 
 import App from './app'
 import registerServiceWorker from './registerServiceWorker'
-import store, { createdHistory } from './store'
+import configureStore from './configureStore'
 import routes from './routes'
-import events from './events'
+import SocketClient from './socket/SocketClient'
 
-events.connect(store)
+const socketClient = new SocketClient()
+const { store, history } = configureStore(socketClient)
+
+socketClient.init(store)
+socketClient.connect()
 
 function init() {
 
@@ -19,7 +23,7 @@ function init() {
     <Grid>
       <BrowserRouter>
         <Provider store={store}>
-          <ConnectedRouter history={createdHistory}>
+          <ConnectedRouter history={history}>
             <App routes={routes} />
           </ConnectedRouter>
         </Provider>

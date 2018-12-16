@@ -2,9 +2,11 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
 import { bindActionCreators } from 'redux'
-import { Table } from 'react-bootstrap'
+import { FormControl, Table } from 'react-bootstrap'
 import moment from 'moment'
 import { LoadingMessage, ApplicationError } from '../../messages'
+import { sendMessage } from '../actions'
+import { setNickname } from '../../../socket/actions'
 
 /* eslint-disable react/jsx-one-expression-per-line */
 
@@ -15,11 +17,28 @@ class Chat extends Component {
     super(props)
 
     this.state = {}
+
+    this.handleChange = this.handleChange.bind(this)
+    this.handleKeyUp = this.handleKeyUp.bind(this)
+
+    this.props.setNickname('gunvald')
+  }
+
+  handleChange(e) {
+    this.setState({ message: e.target.value })
+  }
+
+  handleKeyUp(e) {
+    if (e.keyCode === 13) {
+      this.props.sendMessage(this.state.message)
+      this.setState({ message: '' })
+    }
   }
 
   render() {
 
     const { isLoading, hasError, errorMessage } = this.props
+    const { message } = this.state
 
     /*
     if (isLoading) {
@@ -31,32 +50,14 @@ class Chat extends Component {
     }
     */
 
-    const messages = [
-      {
-        username: 'anders',
-        text: 'lorem ipsum dolor sit amet, consectetur adipiscing elit',
-        time: 1544920607,
-      },
-      {
-        username: 'bengt',
-        text: 'sed do eiusmod tempor incididunt ut labore et dolore magna aliqua',
-        time: 1544920649,
-      },
-      {
-        username: 'cecilia',
-        text: 'ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat',
-        time: 1544920652,
-      },
-    ]
+    const tableRows = this.props.messages.map(({ nickname, message, date }, key) => {
 
-    const tableRows = messages.map(({ username, text, time }) => {
-
-      const outputTime = moment.unix(time).format('h:mm:ss')
+      const outputTime = moment.unix(date).format('H:mm:ss')
 
       return (
-        <tr>
+        <tr key={key}>
           <td>
-            <strong>{username}:</strong> {text}
+            <strong>{nickname}:</strong> {message}
             <span style={{ float: 'right' }}><small>{outputTime}</small></span>
           </td>
         </tr>
@@ -66,13 +67,12 @@ class Chat extends Component {
     return (
       <div>
         <h2>Chat</h2>
-        <p>
-          <Table striped bordered condensed>
-            <tbody>
-              {tableRows}
-            </tbody>
-          </Table>
-        </p>
+        <Table striped bordered condensed>
+          <tbody>
+            {tableRows}
+          </tbody>
+        </Table>
+        <FormControl type="text" value={message} placeholder="Enter a message..." onChange={this.handleChange} onKeyUp={this.handleKeyUp} />
       </div>
     )
   }
@@ -80,8 +80,11 @@ class Chat extends Component {
 
 Chat.propTypes = {
   isLoading: PropTypes.bool.isRequired,
+  sendMessage: PropTypes.func.isRequired,
+  setNickname: PropTypes.func.isRequired,
   hasError: PropTypes.bool,
   errorMessage: PropTypes.string,
+  messages: PropTypes.arrayOf(PropTypes.object).isRequired,
 }
 
 Chat.defaultProps = {
@@ -92,17 +95,20 @@ Chat.defaultProps = {
 function mapDispatchToProps(dispatch) {
 
   return bindActionCreators({
+    sendMessage,
+    setNickname,
   }, dispatch)
 }
 
 function mapStateToProps(applicationState) {
 
-  const state = applicationState.dashboard
+  const state = applicationState.chat
 
   return {
     isLoading: state.get('isLoading'),
     hasError: state.get('hasError'),
     errorMessage: state.get('errorMessage'),
+    messages: state.get('messages'),
   }
 }
 

@@ -1,10 +1,31 @@
+import moment from 'moment'
+import { setNickname as socketSetNickname, sendMessage as socketSendMessage } from '../../socket/actions'
+// import { sendMessage as socketSendMessage } from '../../socketService'
+
 const actionPrefix = '@@chat'
 
 function buildType(subType) {
   return `${actionPrefix}/${subType}`
 }
 
-export function sendMessage(showLoadingState) {
+export function pushMessages(messages) {
+
+  return {
+    type: buildType('pushMessages'),
+    messages,
+  }
+}
+
+export function sendMessage(message) {
+
+  return dispatch => {
+
+    dispatch(socketSendMessage(message))
+
+    // socketSendMessage(message)
+  }
+
+  /*
 
   return async dispatch => {
 
@@ -19,6 +40,7 @@ export function sendMessage(showLoadingState) {
       resolve()
     })
   }
+  */
 }
 
 export function setLoadingState(isLoading) {

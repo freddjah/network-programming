@@ -3,9 +3,7 @@ import Immutable from 'immutable'
 const actionPrefix = '@@chat'
 const initialState = Immutable.fromJS({
   isLoading: true,
-  forms: {},
-  health: {},
-  workers: {},
+  messages: [],
 })
 
 export default (state = initialState, action) => {
@@ -19,7 +17,7 @@ export default (state = initialState, action) => {
   switch (type) {
 
     case 'pushMessages': {
-      return state
+      return state.update('messages', messages => messages.concat(action.messages))
     }
 
     case 'setLoadingState':

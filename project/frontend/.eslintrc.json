@@ -19,7 +19,8 @@
     "guard-for-in": 0,
     "no-restricted-syntax": 0,
     "no-use-before-define": 0,
-    "object-curly-newline": 0
+    "object-curly-newline": 0,
+    "react/destructuring-assignment": 0
   },
   "parserOptions": {
     "ecmaFeatures": {
