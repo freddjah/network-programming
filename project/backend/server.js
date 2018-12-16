@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3001
 io.on('connection', (socket) => {
   socket.use(checksumMiddleware)
 
-  socketController.initialConnection(socket)
+  socketController.handleInitialConnection(socket)
 
   socket.on('nickname', nickname => socketController.handleNickname(socket, nickname))
 

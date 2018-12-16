@@ -3,7 +3,7 @@ const messageController = require('./messageController')
 
 const md5checksum = require('../common/md5checksum')
 
-exports.initialConnection = (socket) => {
+exports.handleInitialConnection = (socket) => {
   const messages = messageController.getAll()
   socket.emit('messages', md5checksum.createString(JSON.stringify(messages)))
 }
@@ -14,8 +14,8 @@ exports.handleNewMessage = (socket, text) => {
   const message = messageController.addMessage(text, user)
   socket.emit('success', 'Successfully added message')
 
-  socket.broadcast.emit('newMessage', md5checksum.createString(JSON.stringify(message)))
-  socket.emit('newMessage', md5checksum.createString(JSON.stringify(message)))
+  socket.broadcast.emit('messages', md5checksum.createString(JSON.stringify([message])))
+  socket.emit('messages', md5checksum.createString(JSON.stringify([message])))
 }
 
 exports.handleNickname = (socket, username) => {
