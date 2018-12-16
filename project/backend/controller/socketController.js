@@ -7,10 +7,10 @@ exports.handleInitialConnection = (socket) => {
   socket.emit('messages', md5checksum.createString(JSON.stringify({ messages })))
 }
 
-exports.handleNewMessage = (socket, text) => {
+exports.handleNewMessage = (socket, data) => {
   const nickname = socket.nickname
 
-  const message = messageController.addMessage(text, nickname)
+  const message = messageController.addMessage(data.message, nickname)
   const messagesObject = { messages: [message] }
 
   socket.broadcast.emit('messages', md5checksum.createString(JSON.stringify(messagesObject)))

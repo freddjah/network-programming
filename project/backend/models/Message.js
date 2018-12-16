@@ -2,8 +2,8 @@ const moment = require('moment')
 
 let messages = []
 
-exports.create = (text, nickname) => {
-  const message = { text, nickname, date: moment().unix()}
+exports.create = (messageText, nickname) => {
+  const message = { message: messageText, nickname, date: moment().unix()}
 
   if (messages.length < 10) {
     messages = [...messages, message]
