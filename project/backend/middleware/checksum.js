@@ -1,8 +1,18 @@
 const md5checksum = require('../common/md5checksum')
 
 module.exports = (packet, next) => {
-  const [_event, dataJSON] = packet
+  const [_event, eventData] = packet
   let data = null
+
+  const checksum = eventData.slice(0, 32)
+
+  if (checksum.length < 32) {
+    const error = { code: 'INVALID_CHECKSUM', message: 'Data needs to be a string of the structure "[checksum][dataAsJSON]"'}
+
+    return next(new Error(JSON.stringify(error)))
+  }
+
+  const dataJSON = eventData.slice(32) 
   
   try {
     data = JSON.parse(dataJSON)
@@ -12,19 +22,13 @@ module.exports = (packet, next) => {
     return next(new Error(JSON.stringify(error)))
   }
 
-  if (typeof data !== 'string') {
-    const error = { code: 'INVALID_CHECKSUM', message: 'Data needs to be a string of the structure "[checksum][dataAsJSON]"'}
-
-    return next(new Error(JSON.stringify(error)))
-  }
-
-  if (!md5checksum.isValidChecksum(data)) {
+  if (!md5checksum.isValidChecksum(checksum, dataJSON)) {
     const error = { code: 'INVALID_CHECKSUM', message: 'Checksum did not match the JSON data'}
 
     return next(new Error(JSON.stringify(error)))
   }
 
-  packet[1] = md5checksum.getData(data)
+  packet[1] = data
 
   next();
 }
