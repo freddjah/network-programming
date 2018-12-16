@@ -5,24 +5,22 @@ const md5checksum = require('../common/md5checksum')
 
 exports.handleInitialConnection = (socket) => {
   const messages = messageController.getAll()
-  socket.emit('messages', md5checksum.createString(JSON.stringify(messages)))
+  socket.emit('messages', md5checksum.createString(JSON.stringify({ messages })))
 }
 
 exports.handleNewMessage = (socket, text) => {
   const nickname = socket.nickname
 
   const message = messageController.addMessage(text, nickname)
-  socket.emit('success', 'Successfully added message')
+  const messagesObject = { messages: [message] }
 
-  socket.broadcast.emit('messages', md5checksum.createString(JSON.stringify([message])))
-  socket.emit('messages', md5checksum.createString(JSON.stringify([message])))
+  socket.broadcast.emit('messages', md5checksum.createString(JSON.stringify(messagesObject)))
+  socket.emit('messages', md5checksum.createString(JSON.stringify(messagesObject)))
 }
 
 exports.handleNickname = (socket, nickname) => {
   userController.addUser(socket.id, nickname)
   socket.nickname = nickname
-
-  socket.emit('success', `Successfully registered user ${nickname}`)
 }
 
 exports.handleDisconnect = (socket) => {
