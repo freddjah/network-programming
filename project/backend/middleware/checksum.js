@@ -6,13 +6,22 @@ module.exports = (packet, next) => {
   
   try {
     data = JSON.parse(dataJSON)
-  } catch (error) {
-    return next(new Error('Data is not valid JSON'))
+  } catch (e) {
+    const error = { code: 'INVALID_JSON', message: 'Data payload was not valid JSON'}
+
+    return next(new Error(JSON.stringify(error)))
+  }
+
+  if (typeof data !== 'string') {
+    const error = { code: 'INVALID_CHECKSUM', message: 'Data needs to be a string of the structure "[checksum][dataAsJSON]"'}
+
+    return next(new Error(JSON.stringify(error)))
   }
 
   if (!md5checksum.isValidChecksum(data)) {
-    console.error('Invalid checksum')
-    return next(new Error('Invalid checksum'))
+    const error = { code: 'INVALID_CHECKSUM', message: 'Checksum did not match the JSON data'}
+
+    return next(new Error(JSON.stringify(error)))
   }
 
   packet[1] = md5checksum.getData(data)
