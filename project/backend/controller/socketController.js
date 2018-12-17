@@ -7,17 +7,17 @@ exports.handleInitialConnection = (socket) => {
   socket.emit('messages', md5checksum.createString(JSON.stringify({ messages })))
 }
 
-exports.handleNewMessage = (socket, data) => {
+exports.handleNewMessage = ([socket, data]) => {
   const nickname = socket.nickname
 
-  const message = messageController.addMessage(data.message, nickname)
+  const message = messageController.createMessage(data.message, nickname)
   const messagesObject = { messages: [message] }
 
   socket.broadcast.emit('messages', md5checksum.createString(JSON.stringify(messagesObject)))
   socket.emit('messages', md5checksum.createString(JSON.stringify(messagesObject)))
 }
 
-exports.handleNickname = (socket, user) => {
+exports.handleNickname = ([socket, user]) => {
   socket.nickname = user.nickname
 }
 
