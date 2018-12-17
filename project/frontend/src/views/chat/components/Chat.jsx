@@ -2,13 +2,68 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
 import { bindActionCreators } from 'redux'
-import { FormControl, Table } from 'react-bootstrap'
+import { Button, FormControl, Glyphicon, Table } from 'react-bootstrap'
 import moment from 'moment'
-import { LoadingMessage, ApplicationError } from '../../messages'
-import { sendMessage } from '../actions'
-import { setNickname } from '../../../socket/actions'
+import { withRouter } from 'react-router-dom'
+import { LoadingMessage, ApplicationMessage } from '../../messages'
+import { setNickname, sendMessage } from '../../../socket/actions'
 
 /* eslint-disable react/jsx-one-expression-per-line */
+/* eslint-disable react/no-array-index-key */
+
+const styles = {
+  messageForm: {
+    bottom: 0,
+    position: 'absolute',
+    width: '100%',
+  },
+  messageInput: {
+    borderLeft: 'none',
+    borderRight: 'none',
+    borderBottom: 'none',
+    borderRadius: 0,
+  },
+  topBar: {
+    width: '100%',
+    textAlign: 'right',
+    backgroundColor: '#666',
+  },
+  exit: {
+    color: '#fff',
+  },
+  emptyState: {
+    marginTop: '5em',
+    width: '100%',
+    fontSize: '200%',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+}
+
+function renderTable(messages) {
+
+  const tableRows = messages.map(({ nickname, message, date }, key) => {
+
+    const outputTime = moment.unix(date).format('H:mm:ss')
+
+    return (
+      <tr key={key}>
+        <td>
+          <strong>{nickname}:</strong> {message}
+          <span style={{ float: 'right' }}><small>{outputTime}</small></span>
+        </td>
+      </tr>
+    )
+  })
+
+  return (
+    <Table striped bordered condensed>
+      <tbody>
+        {tableRows}
+      </tbody>
+    </Table>
+  )
+}
 
 class Chat extends Component {
 
@@ -20,8 +75,11 @@ class Chat extends Component {
 
     this.handleChange = this.handleChange.bind(this)
     this.handleKeyUp = this.handleKeyUp.bind(this)
+    this.exit = this.exit.bind(this)
 
-    this.props.setNickname('gunvald')
+    if ('nickname' in sessionStorage && sessionStorage.nickname.length > 0) {
+      this.props.setNickname(sessionStorage.nickname)
+    }
   }
 
   handleChange(e) {
@@ -29,50 +87,55 @@ class Chat extends Component {
   }
 
   handleKeyUp(e) {
+
     if (e.keyCode === 13) {
       this.props.sendMessage(this.state.message)
       this.setState({ message: '' })
     }
   }
 
+  exit() {
+
+    delete sessionStorage.nickname
+    this.props.history.push('/')
+  }
+
   render() {
 
     const { isLoading, hasError, errorMessage } = this.props
-    const { message } = this.state
+    const { message: inputMessage } = this.state
 
-    /*
     if (isLoading) {
       return <LoadingMessage />
     }
 
     if (hasError) {
-      return <ApplicationError>{errorMessage}</ApplicationError>
+      return <ApplicationMessage severity="error">{errorMessage}</ApplicationMessage>
     }
-    */
 
-    const tableRows = this.props.messages.map(({ nickname, message, date }, key) => {
-
-      const outputTime = moment.unix(date).format('H:mm:ss')
-
-      return (
-        <tr key={key}>
-          <td>
-            <strong>{nickname}:</strong> {message}
-            <span style={{ float: 'right' }}><small>{outputTime}</small></span>
-          </td>
-        </tr>
-      )
-    })
+    let contents = <div style={styles.emptyState}>The chat is empty</div>
+    if (this.props.messages.size > 0) {
+      contents = renderTable(this.props.messages)
+    }
 
     return (
       <div>
-        <h2>Chat</h2>
-        <Table striped bordered condensed>
-          <tbody>
-            {tableRows}
-          </tbody>
-        </Table>
-        <FormControl type="text" value={message} placeholder="Enter a message..." onChange={this.handleChange} onKeyUp={this.handleKeyUp} />
+        <div style={styles.topBar}>
+          <Button onClick={this.exit} bsSize="small" bsStyle="link" style={styles.exit}>
+            <Glyphicon glyph="log-out" /> Exit chat
+          </Button>
+        </div>
+        {contents}
+        <div style={styles.messageForm}>
+          <FormControl
+            type="text"
+            value={inputMessage}
+            placeholder="Enter a message..."
+            style={styles.messageInput}
+            onChange={this.handleChange}
+            onKeyUp={this.handleKeyUp}
+          />
+        </div>
       </div>
     )
   }
@@ -84,7 +147,8 @@ Chat.propTypes = {
   setNickname: PropTypes.func.isRequired,
   hasError: PropTypes.bool,
   errorMessage: PropTypes.string,
-  messages: PropTypes.arrayOf(PropTypes.object).isRequired,
+  messages: PropTypes.object.isRequired,
+  history: PropTypes.object.isRequired,
 }
 
 Chat.defaultProps = {
@@ -112,4 +176,4 @@ function mapStateToProps(applicationState) {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Chat)
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Chat))

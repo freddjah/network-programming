@@ -1,1 +1,2 @@
-export { default as Chat } from './components/Chat' // eslint-disable-line import/prefer-default-export
+export { default as Chat } from './components/Chat'
+export { default as Nickname } from './components/Nickname'

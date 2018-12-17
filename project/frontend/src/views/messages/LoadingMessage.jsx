@@ -1,12 +1,12 @@
 import React from 'react'
-import ApplicationError from './ApplicationError'
+import ApplicationMessage from './ApplicationMessage'
 
 function LoadingMessage() {
 
   return (
-    <ApplicationError>
+    <ApplicationMessage>
       Loading...
-    </ApplicationError>
+    </ApplicationMessage>
   )
 }
 

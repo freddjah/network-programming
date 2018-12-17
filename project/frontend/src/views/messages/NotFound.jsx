@@ -1,10 +1,10 @@
 import React from 'react'
-import ApplicationError from './ApplicationError'
+import ApplicationMessage from './ApplicationMessage'
 
 function NotFound() {
 
   return (
-    <ApplicationError>Not found</ApplicationError>
+    <ApplicationMessage>Not found</ApplicationMessage>
   )
 }
 

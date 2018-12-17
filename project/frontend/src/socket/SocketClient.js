@@ -1,9 +1,22 @@
 import io from 'socket.io-client'
-import { createString, isValidChecksum, getData } from '../md5checksum'
-import { pushMessages } from '../views/chat/actions'
+import { createString, isValidChecksum, getData } from '../utils/md5checksum'
+import { pushMessages, setLoadingState, setError } from '../views/chat/actions'
 
 function buildRequest(data) {
   return createString(JSON.stringify(data))
+}
+
+function composeErrorMessage(errorCode) {
+
+  switch (errorCode) {
+
+    case 'INVALID_CHECKSUM':
+    case 'INVALID_JSON':
+      return 'Network error between client and server. Please reload the page.'
+
+    default:
+      return 'An unknown error has occoured.'
+  }
 }
 
 export default class Client {
@@ -13,7 +26,7 @@ export default class Client {
   }
 
   connect() {
-    this.socket = io.connect('http://localhost:3001')
+    this.socket = io.connect('/')
     this.bindEventListeners()
   }
 
@@ -28,18 +41,20 @@ export default class Client {
   bindEventListeners() {
 
     this.socket.on('error', error => {
-      console.error('received socket error')
-      console.error(error)
+
+      const { code } = JSON.parse(error)
+      this.store.dispatch(setError(composeErrorMessage(code)))
     })
 
     this.socket.on('messages', envelope => {
 
       if (!isValidChecksum(envelope)) {
-        console.error('got message with invalid checksum')
+        this.store.dispatch(composeErrorMessage('INVALID_CHECKSUM'))
         return
       }
 
       const { messages } = getData(envelope)
+      this.store.dispatch(setLoadingState(false))
       this.store.dispatch(pushMessages(messages))
     })
   }

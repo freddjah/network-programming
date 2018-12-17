@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom'
 import { BrowserRouter } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import { ConnectedRouter } from 'react-router-redux'
-import { Grid } from 'react-bootstrap'
 
 import App from './app'
 import registerServiceWorker from './registerServiceWorker'
@@ -20,15 +19,13 @@ socketClient.connect()
 function init() {
 
   ReactDOM.render((
-    <Grid>
-      <BrowserRouter>
-        <Provider store={store}>
-          <ConnectedRouter history={history}>
-            <App routes={routes} />
-          </ConnectedRouter>
-        </Provider>
-      </BrowserRouter>
-    </Grid>
+    <BrowserRouter>
+      <Provider store={store}>
+        <ConnectedRouter history={history}>
+          <App routes={routes} />
+        </ConnectedRouter>
+      </Provider>
+    </BrowserRouter>
   ), document.getElementById('root'))
 
   registerServiceWorker()

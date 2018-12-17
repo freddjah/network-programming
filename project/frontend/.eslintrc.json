@@ -2,12 +2,10 @@
   "extends": ["airbnb", "plugin:jest/recommended"],
   "globals": {
     "document": true,
-    "foo": true,
-    "window": true,
-    "WebSocket": true,
-    "URL": true,
+    "fetch": true,
     "navigator": true,
-    "fetch": true
+    "sessionStorage": true,
+    "window": true
   },
   "plugins": ["jest"],
   "rules": {
@@ -20,7 +18,8 @@
     "no-restricted-syntax": 0,
     "no-use-before-define": 0,
     "object-curly-newline": 0,
-    "react/destructuring-assignment": 0
+    "react/destructuring-assignment": 0,
+    "react/forbid-prop-types": 0
   },
   "parserOptions": {
     "ecmaFeatures": {

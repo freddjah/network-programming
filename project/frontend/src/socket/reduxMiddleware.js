@@ -18,13 +18,15 @@ export default function middleware(socket) {
 
       case 'setNickname':
         socket.setNickname(action.nickname)
-        return next(action)
+        break
 
       case 'sendMessage':
         socket.sendMessage(action.message)
-        return next(action)
+        break
 
       // no default
     }
+
+    return next(action)
   }
 }

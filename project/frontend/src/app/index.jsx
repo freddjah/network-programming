@@ -5,11 +5,9 @@ import { Switch } from 'react-router-dom'
 function App({ routes }) {
 
   return (
-    <div style={{ paddingTop: '2em' }}>
-      <Switch>
-        {routes}
-      </Switch>
-    </div>
+    <Switch>
+      {routes}
+    </Switch>
   )
 }
 
