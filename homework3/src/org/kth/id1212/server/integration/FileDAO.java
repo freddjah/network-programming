@@ -34,7 +34,7 @@ public class FileDAO {
     this.getAllStatement = dbConnection.prepareStatement("SELECT * FROM files ORDER BY filename");
   }
 
-  public File store(String filename, int size, int userId, int readPermission, int writePermission) throws Exception {
+  public File store(String filename, int size, int userId, int readPermission, int writePermission) throws SQLException {
 
     this.storeStatement.setString(1, filename);
     this.storeStatement.setInt(2, size);
@@ -42,10 +42,7 @@ public class FileDAO {
     this.storeStatement.setInt(4, readPermission);
     this.storeStatement.setInt(5, writePermission);
 
-    if(this.storeStatement.executeUpdate() != 1) {
-      // @todo fix this
-      throw new Exception("You suck");
-    }
+    this.storeStatement.executeUpdate();
 
     return new File(filename, size, userId, readPermission, writePermission);
   }
@@ -69,7 +66,7 @@ public class FileDAO {
     return null;
   }
 
-  public List<? extends File> getAll() throws SQLException {
+  public List<File> getAll() throws SQLException {
 
     ResultSet result = this.getAllStatement.executeQuery();
     List<File> files = new ArrayList<>();

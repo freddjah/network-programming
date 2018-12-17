@@ -1,16 +1,13 @@
 package org.kth.id1212.common;
 
-public interface FileDTO {
+import java.io.Serializable;
+
+public interface FileDTO extends Serializable {
 
   public static final int PERMISSION_ALL = 0;
   public static final int PERMISSION_PRIVATE = 1;
 
-  public String getFilename();
+  String getFilename();
 
-  public int getSize();
-
-  public int getReadPermission();
-
-  public int getWritePermission();
-
+  int getSize();
 }

@@ -1,6 +1,5 @@
 package org.kth.id1212.server.model;
 
-import org.kth.id1212.common.FileCatalogException;
 import org.kth.id1212.common.FileDTO;
 
 public class File implements FileDTO {
@@ -27,16 +26,6 @@ public class File implements FileDTO {
   @Override
   public int getSize() {
     return this.size;
-  }
-
-  @Override
-  public int getReadPermission() {
-    return this.readPermission;
-  }
-
-  @Override
-  public int getWritePermission() {
-    return this.writePermission;
   }
 
   public int getUserId() {

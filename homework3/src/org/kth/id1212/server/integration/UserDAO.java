@@ -23,16 +23,20 @@ public class UserDAO {
     this.findByUsernameStatement = dbConnection.prepareStatement("SELECT * FROM users WHERE username = ? LIMIT 1");
   }
 
-  public User register(String username, String password) throws Exception {
+  public User register(String username, String password) throws SQLException {
+
     this.registerStatement.setString(1, username);
     this.registerStatement.setString(2, password);
+
     if (this.registerStatement.executeUpdate() != 1) {
-      // @todo fix this
-      throw new Exception("todo");
+      throw new SQLException("Could not execute query");
     }
 
     ResultSet result = this.registerStatement.getGeneratedKeys();
-    //result.next();
+
+    if (!result.next()) {
+      throw new SQLException("Something went wrong");
+    }
 
     return new User(result.getInt(1), username, password);
   }

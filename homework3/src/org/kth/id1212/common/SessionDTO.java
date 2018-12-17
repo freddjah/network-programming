@@ -1,6 +1,8 @@
 package org.kth.id1212.common;
 
-public interface SessionDTO {
+import java.io.Serializable;
+
+public interface SessionDTO extends Serializable {
 
   public String getId();
 }

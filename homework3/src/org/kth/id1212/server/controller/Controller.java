@@ -1,9 +1,6 @@
 package org.kth.id1212.server.controller;
 
-import org.kth.id1212.common.FileCatalog;
-import org.kth.id1212.common.FileCatalogException;
-import org.kth.id1212.common.FileDTO;
-import org.kth.id1212.common.SessionDTO;
+import org.kth.id1212.common.*;
 import org.kth.id1212.server.integration.FileDAO;
 import org.kth.id1212.server.integration.UserDAO;
 import org.kth.id1212.server.model.File;
@@ -14,12 +11,15 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class Controller extends UnicastRemoteObject implements FileCatalog {
 
-  private HashMap<SessionDTO, User> sessions = new HashMap<>();
+  private HashMap<String, User> sessions = new HashMap<>();
+  private HashMap<Integer, ArrayList<String>> messagesToUser = new HashMap<>();
+
   private FileDAO fileDb;
   private UserDAO userDb;
 
@@ -31,21 +31,21 @@ public class Controller extends UnicastRemoteObject implements FileCatalog {
   }
 
   @Override
-  public synchronized SessionDTO login(String username, String password) throws FileCatalogException {
+  public synchronized SessionDTO login(String username, String password) throws FileCatalogException, UserLoginException {
 
     try {
       User user = userDb.findByUsername(username);
 
       if (user == null) {
-        throw new FileCatalogException("User not found");
+        throw new UserLoginException("User not found");
       }
 
       if (!user.verifyPassword(password)) {
-        throw new FileCatalogException("Username and password does not match");
+        throw new UserLoginException("Username and password does not match");
       }
 
       Session session = new Session();
-      sessions.put(session, user);
+      sessions.put(session.getId(), user);
 
       return session;
     } catch (SQLException e) {
@@ -54,8 +54,31 @@ public class Controller extends UnicastRemoteObject implements FileCatalog {
   }
 
   @Override
+  public SessionDTO register(String username, String password) throws FileCatalogException, UserRegisterException {
+
+    try {
+      User existingUser = this.userDb.findByUsername(username);
+
+      if (existingUser != null) {
+        throw new UserRegisterException("Username already exists");
+      }
+
+      this.userDb.register(username, User.hashPassword(password));
+
+      return this.login(username, password);
+
+    } catch (SQLException e) {
+      e.printStackTrace();
+      throw new FileCatalogException("Database error");
+    } catch (UserLoginException e) {
+      throw new UserRegisterException(e.getMessage());
+    }
+  }
+
+
+  @Override
   public synchronized void logout(SessionDTO session) {
-    this.sessions.remove(session);
+    this.sessions.remove(session.getId());
   }
 
   @Override
@@ -66,6 +89,7 @@ public class Controller extends UnicastRemoteObject implements FileCatalog {
     try {
       return this.fileDb.getAll();
     } catch (SQLException e) {
+      e.printStackTrace();
       throw new FileCatalogException("Database error");
     }
   }
@@ -78,15 +102,33 @@ public class Controller extends UnicastRemoteObject implements FileCatalog {
     try {
 
       File existingFile = this.fileDb.findByFilename(filename);
-      if (existingFile != null && !existingFile.hasWriteAccess(user)) {
-        throw new FileCatalogException("You don't have write access to this file");
+      if (existingFile != null) {
+
+        if (!existingFile.hasWriteAccess(user)) {
+          throw new FileCatalogException("You don't have write access to this file");
+        }
+
+        if (existingFile.getUserId() != user.getId()) {
+          sendMessageToUser(existingFile.getUserId(), "User " + user.getUsername() + " wrote to your file " + existingFile.getFilename());
+        }
       }
 
+
+
+
       this.fileDb.store(filename, size, user.getId(), readPermission, writePermission);
-    } catch (Exception e) {
+    } catch (SQLException e) {
       // @todo catch specific exception
+      e.printStackTrace();
       throw new FileCatalogException("Database error");
     }
+  }
+
+  private void sendMessageToUser(int userId, String message) {
+
+    ArrayList<String> messages = this.messagesToUser.getOrDefault(userId, new ArrayList<>());
+    messages.add(message);
+    this.messagesToUser.put(userId, messages);
   }
 
   @Override
@@ -104,6 +146,10 @@ public class Controller extends UnicastRemoteObject implements FileCatalog {
 
       if (!existingFile.hasWriteAccess(user)) {
         throw new FileCatalogException("You don't have write access to this file");
+      }
+
+      if (existingFile.getUserId() != user.getId()) {
+        sendMessageToUser(existingFile.getUserId(), "User " + user.getUsername() + " deleted your file " + existingFile.getFilename());
       }
 
       this.fileDb.delete(filename);
@@ -129,15 +175,27 @@ public class Controller extends UnicastRemoteObject implements FileCatalog {
         throw new FileCatalogException("You don't have read access to this file");
       }
 
+      if (existingFile.getUserId() != user.getId()) {
+        sendMessageToUser(existingFile.getUserId(), "User " + user.getUsername() + " downloaded your file " + existingFile.getFilename());
+      }
+
       return "file content";
     } catch (SQLException e) {
       throw new FileCatalogException("Database error");
     }
   }
 
+  @Override
+  public List<String> getUnreadUserMessages(SessionDTO session) throws FileCatalogException {
+
+    User user = this.validateSession(session);
+
+    return this.messagesToUser.remove(user.getId());
+  }
+
   private User validateSession(SessionDTO session) throws FileCatalogException {
 
-    User user = this.sessions.get(session);
+    User user = this.sessions.get(session.getId());
     if (user == null) {
       throw new FileCatalogException("Your session is invalid");
     }

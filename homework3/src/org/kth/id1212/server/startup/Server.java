@@ -43,6 +43,6 @@ public class Server {
 
     Class.forName("com.mysql.jdbc.Driver");
 
-    return DriverManager.getConnection("jdbc:mysql://localhost:3306/filecatalog", "filecatalog", "filecatalog");
+    return DriverManager.getConnection("jdbc:mysql://localhost:3306/filecatalog", "root", "homework3");
   }
 }
