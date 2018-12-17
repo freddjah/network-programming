@@ -11,14 +11,13 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class Controller extends UnicastRemoteObject implements FileCatalog {
 
   private HashMap<String, User> sessions = new HashMap<>();
-  private HashMap<Integer, ArrayList<String>> messagesToUser = new HashMap<>();
+  private HashMap<Integer, Client> clients = new HashMap<>();
 
   private FileDAO fileDb;
   private UserDAO userDb;
@@ -31,7 +30,7 @@ public class Controller extends UnicastRemoteObject implements FileCatalog {
   }
 
   @Override
-  public synchronized SessionDTO login(String username, String password) throws FileCatalogException, UserLoginException {
+  public synchronized SessionDTO login(String username, String password, Client client) throws FileCatalogException, UserLoginException {
 
     try {
       User user = userDb.findByUsername(username);
@@ -44,8 +43,9 @@ public class Controller extends UnicastRemoteObject implements FileCatalog {
         throw new UserLoginException("Username and password does not match");
       }
 
-      Session session = new Session();
-      sessions.put(session.getId(), user);
+      Session session = new Session(user.getId());
+      this.sessions.put(session.getId(), user);
+      this.clients.put(user.getId(), client);
 
       return session;
     } catch (SQLException e) {
@@ -54,7 +54,7 @@ public class Controller extends UnicastRemoteObject implements FileCatalog {
   }
 
   @Override
-  public SessionDTO register(String username, String password) throws FileCatalogException, UserRegisterException {
+  public SessionDTO register(String username, String password, Client client) throws FileCatalogException, UserRegisterException {
 
     try {
       User existingUser = this.userDb.findByUsername(username);
@@ -65,7 +65,7 @@ public class Controller extends UnicastRemoteObject implements FileCatalog {
 
       this.userDb.register(username, User.hashPassword(password));
 
-      return this.login(username, password);
+      return this.login(username, password, client);
 
     } catch (SQLException e) {
       e.printStackTrace();
@@ -113,10 +113,8 @@ public class Controller extends UnicastRemoteObject implements FileCatalog {
         }
       }
 
-
-
-
       this.fileDb.store(filename, size, user.getId(), readPermission, writePermission);
+
     } catch (SQLException e) {
       // @todo catch specific exception
       e.printStackTrace();
@@ -126,9 +124,17 @@ public class Controller extends UnicastRemoteObject implements FileCatalog {
 
   private void sendMessageToUser(int userId, String message) {
 
-    ArrayList<String> messages = this.messagesToUser.getOrDefault(userId, new ArrayList<>());
-    messages.add(message);
-    this.messagesToUser.put(userId, messages);
+    Client client = this.clients.get(userId);
+    if (client == null) {
+      return;
+    }
+
+    try {
+      client.sendMessage(message);
+    } catch (RemoteException e) {
+      System.out.println("Error: Could not send message to client");
+      e.printStackTrace();
+    }
   }
 
   @Override
@@ -183,14 +189,6 @@ public class Controller extends UnicastRemoteObject implements FileCatalog {
     } catch (SQLException e) {
       throw new FileCatalogException("Database error");
     }
-  }
-
-  @Override
-  public List<String> getUnreadUserMessages(SessionDTO session) throws FileCatalogException {
-
-    User user = this.validateSession(session);
-
-    return this.messagesToUser.remove(user.getId());
   }
 
   private User validateSession(SessionDTO session) throws FileCatalogException {

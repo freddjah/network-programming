@@ -8,9 +8,9 @@ public interface FileCatalog extends Remote {
 
   public static final String REGISTRY_NAME = "filecatalog";
 
-  public SessionDTO login(String username, String password) throws FileCatalogException, RemoteException, UserLoginException;
+  public SessionDTO login(String username, String password, Client client) throws FileCatalogException, RemoteException, UserLoginException;
 
-  public SessionDTO register(String username, String password) throws FileCatalogException, RemoteException, UserRegisterException;
+  public SessionDTO register(String username, String password, Client client) throws FileCatalogException, RemoteException, UserRegisterException;
 
   public void logout(SessionDTO session) throws RemoteException;
 
@@ -21,6 +21,4 @@ public interface FileCatalog extends Remote {
   public void deleteFile(SessionDTO session, String filename) throws FileCatalogException, RemoteException;
 
   public String downloadFile(SessionDTO session, String filename) throws FileCatalogException, RemoteException;
-
-  public List<String> getUnreadUserMessages(SessionDTO session) throws FileCatalogException, RemoteException;
 }

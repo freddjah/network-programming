@@ -28,6 +28,21 @@ public class File implements FileDTO {
     return this.size;
   }
 
+  @Override
+  public boolean isOwner(int userId) {
+    return userId == this.userId;
+  }
+
+  @Override
+  public int getReadPermission() {
+    return this.readPermission;
+  }
+
+  @Override
+  public int getWritePermission() {
+    return this.writePermission;
+  }
+
   public int getUserId() {
     return this.userId;
   }

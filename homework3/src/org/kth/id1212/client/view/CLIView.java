@@ -4,13 +4,15 @@ import org.kth.id1212.common.*;
 
 import java.io.File;
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
 import java.util.Scanner;
 
 public class CLIView {
 
   private FileCatalog fileCatalog;
-  private Scanner input = new Scanner(System.in);
+  transient private Scanner input = new Scanner(System.in);
+  MessageClient messageClient;
   SessionDTO session;
 
   public CLIView(FileCatalog fileCatalog) {
@@ -20,12 +22,13 @@ public class CLIView {
   public void start() {
 
     try {
+
+      this.messageClient = new MessageClient();
       this.session = this.authenticate();
 
       while (true) {
         try {
 
-          this.printUnreadMessages();
           this.handleAction();
 
         } catch (FileCatalogException e) {
@@ -66,7 +69,7 @@ public class CLIView {
     String password = this.input.next();
 
     try {
-      return this.fileCatalog.login(username, password);
+      return this.fileCatalog.login(username, password, this.messageClient);
     } catch (UserLoginException e) {
       System.out.println("Error: " + e.getMessage());
       return login();
@@ -82,25 +85,10 @@ public class CLIView {
     String password = this.input.next();
 
     try {
-      return this.fileCatalog.register(username, password);
+      return this.fileCatalog.register(username, password, this.messageClient);
     } catch (UserRegisterException e) {
       System.out.println("Error: " + e.getMessage());
       return register();
-    }
-  }
-
-  private void printUnreadMessages() throws RemoteException, FileCatalogException {
-
-    List<String> messages = this.fileCatalog.getUnreadUserMessages(this.session);
-
-    if (messages == null) {
-      return;
-    }
-
-    System.out.println("\nGot messages:");
-
-    for (String message : messages) {
-      System.out.println(message);
     }
   }
 
@@ -145,11 +133,26 @@ public class CLIView {
   private void listFiles() throws RemoteException, FileCatalogException {
 
     List<? extends FileDTO> files = this.fileCatalog.listFiles(this.session);
-    System.out.println("\nFilename\tSize");
+    System.out.println();
+    printListColumn("Filename", 30);
+    printListColumn("Size", 10);
+    printListColumn("Is Owner", 15);
+    printListColumn("Read Perm", 15);
+    printListColumn("Write Perm", 15);
+    System.out.println();
 
     for (FileDTO file : files) {
-      System.out.println(file.getFilename() + "\t" + file.getSize() + " KB");
+      printListColumn(file.getFilename(), 30);
+      printListColumn(file.getSize() + " KB", 10);
+      printListColumn(file.isOwner(this.session.getUserId()) ? "YES" : "NO", 15);
+      printListColumn(file.getReadPermission() == FileDTO.PERMISSION_PRIVATE ? "PRIVATE" : "PUBLIC", 15);
+      printListColumn(file.getWritePermission() == FileDTO.PERMISSION_PRIVATE ? "PRIVATE" : "PUBLIC", 15);
+      System.out.println();
     }
+  }
+
+  private static void printListColumn(String s, int n) {
+    System.out.print(String.format("%1$-" + n + "s", s));
   }
 
   private void downloadFile() throws RemoteException, FileCatalogException {
