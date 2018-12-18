@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  backend:
+    container_name: backend
+    image: chat-backend:latest
+    expose:
+      - "3001"
+  frontend:
+    container_name: frontend
+    image: chat-frontend:latest
+    ports:
+      - "3000:80"
+    links:
+      - "backend:backend"
+    depends_on:
+      - backend
