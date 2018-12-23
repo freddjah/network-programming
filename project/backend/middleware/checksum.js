@@ -1,30 +1,33 @@
 const { isValidChecksum } = require('../common/md5checksum')
-const validator = require('validator')
+const isJSON = require('validator/lib/isJSON')
 
-module.exports = ([socket, data]) => new Promise((resolve, reject) => {
-  const checksum = data.slice(0, 32)
+module.exports = (ctx, next) => {
+  const checksum = ctx.data.slice(0, 32)
 
   if (checksum.length < 32) {
-    const error = { code: 'INVALID_CHECKSUM', message: 'Data needs to be a string of the structure "[checksum][dataAsJSON]"'}
+    let error = new Error('Data needs to be a string of the structure "[checksum][dataAsJSON]"')
+    error.code = 'INVALID_CHECKSUM'
 
-    return reject(JSON.stringify(error))
+    throw error
   }
 
-  const dataJSON = data.slice(32)
+  const dataJSON = ctx.data.slice(32)
 
-  if (!validator.isJSON(dataJSON)) {
-    const error = { code: 'INVALID_JSON', message: 'Data payload was not valid JSON'}
+  if (!isJSON(dataJSON)) {
+    let error = new Error('Data payload was not valid JSON')
+    error.code = 'INVALID_JSON'
 
-    return reject(JSON.stringify(error))
+    throw error
   }
 
   if (!isValidChecksum(checksum, dataJSON)) {
-    const error = { code: 'INVALID_CHECKSUM', message: 'Checksum did not match the JSON data'}
+    let error = new Error('Checksum did not match the JSON data')
+    error.code = 'INVALID_CHECKSUM'
 
-    return reject(JSON.stringify(error))
+    throw error
   }
 
-  data = JSON.parse(dataJSON)
+  ctx.data = JSON.parse(dataJSON)
 
-  resolve([socket, data])
-})
+  next()
+}

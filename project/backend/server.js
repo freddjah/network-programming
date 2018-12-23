@@ -4,34 +4,55 @@ const app = require('express')()
 const server = require('http').createServer(app)
 const io = require('socket.io')(server)
 
-const md5checksum = require('./common/md5checksum')
+const SocketController = require('./controller/socketController')
+const MiddlewareHandler = require('./middleware/MiddlewareHandler')
+
 const checksumMiddleware = require('./middleware/checksum')
 const authMiddleware = require('./middleware/authentication')
-const messageValidationMiddleware = require('./middleware/message')
+const nicknameValidationMiddleware = require('./middleware/nicknameValidation')
+const messageValidationMiddleware = require('./middleware/messageValidation')
+const md5checksum = require('./common/md5checksum')
 
-const socketController = require('./controller/socketController')
+const socketHandler = new SocketController()
 
 const PORT = process.env.PORT || 3001
 
 io.on('connection', (socket) => {
-  socketController.handleInitialConnection(socket)
+  socketHandler.handleInitialConnection({ socket, data: undefined })
 
   socket.on('nickname', data => {
-    checksumMiddleware([socket, data])
-      .then(socketController.handleNickname)
-      .catch(errorJSON => {
-        socket.emit('applicationError', md5checksum.createString(errorJSON))
-      })
+    let ctx = {socket, data}
+    let middlewareHandler = new MiddlewareHandler()
+
+    middlewareHandler.use(checksumMiddleware)
+    middlewareHandler.use(nicknameValidationMiddleware)
+
+    try {
+      middlewareHandler.run(ctx)
+      socketHandler.handleNickname(ctx)
+    } catch (error) {
+      socket.emit('applicationError', md5checksum.createString(JSON.stringify(error))) 
+    }
   })
 
   socket.on('newMessage', data => {
-    authMiddleware([socket, data])
-      .then(checksumMiddleware)
-      .then(messageValidationMiddleware)
-      .then(socketController.handleNewMessage)
-      .catch(errorJSON => {
-        socket.emit('applicationError', md5checksum.createString(errorJSON))
-      })
+    let ctx = {socket, data}
+    let middlewareHandler = new MiddlewareHandler()
+
+    middlewareHandler.use(authMiddleware)
+    middlewareHandler.use(checksumMiddleware)
+    middlewareHandler.use(messageValidationMiddleware)
+
+    try {
+      middlewareHandler.run(ctx)
+      socketHandler.handleNewMessage(ctx)
+    } catch (error) {
+      socket.emit('applicationError', md5checksum.createString(JSON.stringify(error))) 
+    }
+  })
+
+  socket.on('disconnect', () => {
+    socketHandler.handleDisconnect({ socket, data: undefined})
   })
 })
 

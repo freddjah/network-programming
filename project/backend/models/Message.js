@@ -1,20 +1,26 @@
 const moment = require('moment')
 
+// Saving 10 most recent messages in memory
 let messages = []
 
-exports.create = (messageText, nickname) => {
-  const message = { message: messageText, nickname, date: moment().unix()}
-
-  if (messages.length < 10) {
-    messages = [...messages, message]
-  } else {
-    messages = [...messages.slice(1, 10), message]
+class Message {
+  constructor(text, nickname) {
+    this.message = text
+    this.nickname = nickname
+    this.date = moment().unix()
   }
 
-  return message
+  save() {
+    if (messages.length < 10) {
+      messages = [...messages, this]
+    } else {
+      messages = [...messages.slice(1, 10), this]
+    }
+  }
+
+  static get getAll() {
+    return messages
+  }
 }
 
-exports.getAll = () => {
-  return messages
-}
-
+module.exports = Message

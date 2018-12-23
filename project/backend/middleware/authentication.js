@@ -1,11 +1,13 @@
 const validator = require('validator')
 
-module.exports = ([socket, data]) => new Promise((resolve, reject) => {
-  if (typeof socket.nickname !== 'string' || !validator.isAlphanumeric(socket.nickname)) {
-    const error = { code: 'AUTH_ERROR', message: 'Authentication failed'}
+module.exports = (ctx, next) => {
+  if (typeof ctx.socket.nickname === 'undefined' || typeof ctx.socket.nickname !== 'string' || !validator.isAlphanumeric(ctx.socket.nickname)) {
 
-    return reject(JSON.stringify(error))
+    let error = new Error('Authentication failed')
+    error.code = 'AUTH_ERROR'
+
+    throw error
   }
 
-  resolve([socket, data])
-})
+  next()
+}
