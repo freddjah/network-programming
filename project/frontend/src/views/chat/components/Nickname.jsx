@@ -16,7 +16,7 @@ class Nickname extends Component {
 
     super(props)
 
-    this.state = {}
+    this.state = { nickname: '' }
 
     this.handleChange = this.handleChange.bind(this)
     this.handleSubmit = this.handleSubmit.bind(this)
@@ -67,6 +67,7 @@ class Nickname extends Component {
                       style={{ textAlign: 'center', marginBottom: '0.5em' }}
                       onChange={this.handleChange}
                     />
+                    <FormControl.Feedback />
                     <Button
                       type="submit"
                       bsStyle="primary"

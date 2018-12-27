@@ -71,7 +71,7 @@ class Chat extends Component {
 
     super(props)
 
-    this.state = {}
+    this.state = { message: '' }
 
     this.handleChange = this.handleChange.bind(this)
     this.handleKeyUp = this.handleKeyUp.bind(this)
@@ -105,12 +105,12 @@ class Chat extends Component {
     const { isLoading, hasError, errorMessage } = this.props
     const { message: inputMessage } = this.state
 
-    if (isLoading) {
-      return <LoadingMessage />
-    }
-
     if (hasError) {
       return <ApplicationMessage severity="error">{errorMessage}</ApplicationMessage>
+    }
+
+    if (isLoading) {
+      return <LoadingMessage />
     }
 
     let contents = <div style={styles.emptyState}>The chat is empty</div>

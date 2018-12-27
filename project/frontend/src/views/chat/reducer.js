@@ -23,11 +23,21 @@ export default (state = initialState, action) => {
     case 'setLoadingState':
       return state.set('isLoading', action.isLoading)
 
-    case 'setError':
+    case 'setError': {
+
+      if (action.errorMessage === null) {
+
+        return state.merge(Immutable.fromJS({
+          hasError: false,
+          errorMessage: null,
+        }))
+      }
+
       return state.merge(Immutable.fromJS({
         hasError: true,
         errorMessage: action.errorMessage,
       }))
+    }
 
     default:
       return state

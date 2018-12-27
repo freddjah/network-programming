@@ -10,6 +10,9 @@ function composeErrorMessage(errorCode) {
 
   switch (errorCode) {
 
+    case 'AUTH_ERROR':
+      return 'Something went wrong when authenticating'
+
     case 'INVALID_CHECKSUM':
     case 'INVALID_JSON':
       return 'Network error between client and server. Please reload the page.'
@@ -40,9 +43,17 @@ export default class Client {
 
   bindEventListeners() {
 
-    this.socket.on('error', error => {
+    this.socket.on('connect', () => {
+      this.store.dispatch(setError(null))
+    })
 
-      const { code } = JSON.parse(error)
+    this.socket.on('connect_error', () => {
+      this.store.dispatch(setError('Connection error. Please reload the page.'))
+    })
+
+    this.socket.on('applicationError', envelope => {
+
+      const { code } = getData(envelope)
       this.store.dispatch(setError(composeErrorMessage(code)))
     })
 
