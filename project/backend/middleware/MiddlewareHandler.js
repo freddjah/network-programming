@@ -9,15 +9,15 @@ class MiddlewareHandler {
 
   executeMiddleware(data, done) {
     const composition = this.middlewares.reduceRight((done, next) => () => {
-      next(data, done)
-    }, done)
-    
+      next(data, done);
+    }, done);
+
     composition(data);
   }
 
   run(data) {
-    this.executeMiddleware(data, (result) => result);
+    this.executeMiddleware(data, result => result);
   }
 }
 
-module.exports = MiddlewareHandler
+module.exports = MiddlewareHandler;
